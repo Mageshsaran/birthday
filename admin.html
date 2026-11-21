@@ -1,0 +1,3165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Birthday Studio — Admin</title>
+<style>
+  :root {
+    --bg: #120d1c;
+    --bg-soft: #171022;
+    --panel: #1c1429;
+    --panel-2: #241a34;
+    --line: rgba(255,255,255,.09);
+    --text: #f5effa;
+    --muted: #a99bbd;
+    --pink: #ff5f9e;
+    --violet: #8b5cf6;
+    --gold: #ffd166;
+    --green: #4ade80;
+    --red: #fb7185;
+    --radius: 16px;
+    --font: 'Segoe UI', system-ui, -apple-system, 'Helvetica Neue', sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html { min-height: 100%; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background:
+      radial-gradient(900px 600px at 100% 0%, rgba(139,92,246,.16), transparent 60%),
+      radial-gradient(700px 500px at 0% 100%, rgba(255,95,158,.12), transparent 60%),
+      var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    -webkit-font-smoothing: antialiased;
+  }
+  button, input, textarea, select { font: inherit; }
+  button { color: inherit; }
+  [hidden] { display: none !important; }
+  ::selection { background: var(--pink); color: #1b0c28; }
+  :focus-visible { outline: 2px solid var(--pink); outline-offset: 2px; }
+  a { color: var(--pink); }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 11px 18px;
+    border: 1px solid transparent;
+    border-radius: 11px;
+    background: rgba(255,255,255,.06);
+    color: var(--text);
+    font-size: .9rem;
+    font-weight: 700;
+    line-height: 1.2;
+    text-decoration: none;
+    cursor: pointer;
+    transition: transform .15s ease, background .2s ease, border-color .2s ease, box-shadow .2s;
+  }
+  .btn:hover { transform: translateY(-1px); background: rgba(255,255,255,.11); }
+  .btn:active { transform: none; }
+  .btn.primary {
+    background: linear-gradient(120deg, var(--pink), var(--violet));
+    border-color: transparent;
+    color: #fff;
+    box-shadow: 0 10px 26px -12px rgba(255,95,158,.8);
+  }
+  .btn.primary:hover { box-shadow: 0 16px 32px -14px rgba(255,95,158,.9); }
+  .btn.ghost { background: transparent; border-color: var(--line); }
+  .btn.ghost:hover { background: rgba(255,255,255,.06); }
+  .btn.danger { background: rgba(251,113,133,.12); border-color: rgba(251,113,133,.35); color: #ffb4c0; }
+  .btn.danger:hover { background: rgba(251,113,133,.22); }
+  .btn.small { padding: 8px 13px; font-size: .82rem; border-radius: 9px; }
+  .btn:disabled { opacity: .5; cursor: default; transform: none; }
+
+  /* ==========================================================
+     Login / first-run
+     ========================================================== */
+  .login-screen {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 28px 18px;
+  }
+  .login-screen::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(2px 2px at 18% 22%, rgba(255,255,255,.5), transparent 55%),
+      radial-gradient(2px 2px at 82% 68%, rgba(255,255,255,.35), transparent 55%),
+      radial-gradient(1.5px 1.5px at 62% 18%, rgba(255,255,255,.3), transparent 55%);
+    background-size: 320px 320px, 410px 410px, 280px 280px;
+    opacity: .6;
+  }
+  .login-card {
+    position: relative;
+    width: min(420px, 100%);
+    padding: 34px 30px 28px;
+    border: 1px solid rgba(255,255,255,.1);
+    border-radius: 24px;
+    background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02)), var(--panel);
+    box-shadow: 0 40px 90px -40px #000;
+    backdrop-filter: blur(20px);
+  }
+  .login-logo {
+    display: grid;
+    place-items: center;
+    width: 58px;
+    height: 58px;
+    margin: 0 0 18px;
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 18px;
+    background: linear-gradient(135deg, rgba(255,95,158,.3), rgba(139,92,246,.3));
+    font-size: 1rem;
+    font-weight: 900;
+    letter-spacing: .04em;
+    box-shadow: 0 14px 32px -18px rgba(255,95,158,.7);
+  }
+  .login-logo + .eyebrow { margin-top: 0; }
+  .eyebrow {
+    margin: 0 0 8px;
+    color: var(--pink);
+    font-size: .68rem;
+    font-weight: 800;
+    letter-spacing: .24em;
+    text-transform: uppercase;
+  }
+  .login-card h1 { margin: 0 0 8px; font-size: 1.55rem; letter-spacing: -.02em; }
+  .login-sub { margin: 0 0 22px; color: var(--muted); font-size: .88rem; line-height: 1.55; }
+  .login-card .field { margin-bottom: 14px; }
+  .login-card .btn { width: 100%; margin-top: 4px; }
+  .login-error { min-height: 1.2em; margin: 10px 0 0; color: var(--red); font-size: .8rem; }
+  .login-hint { min-height: 1.1em; margin: 2px 0 12px; color: var(--muted); font-size: .78rem; }
+  .login-link {
+    display: block;
+    width: 100%;
+    margin-top: 14px;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--muted);
+    font-size: .78rem;
+    text-align: center;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    cursor: pointer;
+  }
+  .login-link:hover { color: var(--text); }
+  .fine-print {
+    margin: 20px 0 0;
+    padding-top: 16px;
+    border-top: 1px solid var(--line);
+    color: #8d7fa1;
+    font-size: .72rem;
+    line-height: 1.55;
+  }
+
+  /* ==========================================================
+     App shell
+     ========================================================== */
+  .app {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: 250px minmax(0, 1fr);
+    min-height: 100vh;
+  }
+  .sidebar {
+    position: sticky;
+    top: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+    height: 100vh;
+    padding: 26px 16px 20px;
+    border-right: 1px solid var(--line);
+    background: rgba(15,10,24,.65);
+    backdrop-filter: blur(18px);
+    overflow-y: auto;
+  }
+  .brand { display: flex; align-items: center; gap: 12px; padding: 0 6px; }
+  .brand-icon {
+    display: grid;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    flex: 0 0 auto;
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 13px;
+    background: linear-gradient(135deg, rgba(255,95,158,.32), rgba(139,92,246,.32));
+    font-size: .84rem;
+    font-weight: 900;
+    letter-spacing: .04em;
+  }
+  .brand strong { display: block; font-size: .93rem; letter-spacing: -.01em; }
+  .brand small { display: block; margin-top: 2px; color: var(--muted); font-size: .7rem; }
+  .sidenav { display: flex; flex-direction: column; gap: 3px; }
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    width: 100%;
+    padding: 10px 11px;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    background: transparent;
+    color: var(--muted);
+    font-size: .87rem;
+    font-weight: 600;
+    text-align: left;
+    cursor: pointer;
+    transition: background .16s, color .16s, border-color .16s;
+  }
+  .nav-item .ico {
+    width: 22px;
+    flex: 0 0 22px;
+    color: inherit;
+    font-size: .64rem;
+    font-weight: 800;
+    letter-spacing: .02em;
+    text-align: center;
+    opacity: .72;
+  }
+  .nav-item:hover { background: rgba(255,255,255,.05); color: var(--text); }
+  .nav-item.active {
+    background: linear-gradient(90deg, rgba(255,95,158,.16), rgba(139,92,246,.1));
+    border-color: rgba(255,95,158,.28);
+    color: #fff;
+  }
+  .side-foot { display: flex; flex-direction: column; gap: 8px; margin-top: auto; padding-top: 10px; }
+  .side-foot .btn { width: 100%; }
+
+  .main {
+    width: 100%;
+    max-width: 1180px;
+    padding: 32px clamp(18px, 3.6vw, 44px) 70px;
+  }
+  .topbar {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 18px;
+    margin-bottom: 24px;
+  }
+  .topbar h1 { margin: 0; font-size: 1.55rem; letter-spacing: -.02em; }
+  .topbar p { margin: 5px 0 0; color: var(--muted); font-size: .87rem; line-height: 1.5; }
+  .top-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .save-state { color: var(--muted); font-size: .76rem; }
+  .save-state.unsaved { color: var(--gold); }
+  .save-state.saving { color: var(--violet); }
+  .storage-warning {
+    margin-bottom: 20px;
+    padding: 13px 16px;
+    border: 1px solid rgba(251,113,133,.35);
+    border-radius: 12px;
+    background: rgba(251,113,133,.1);
+    color: #ffc2cc;
+    font-size: .82rem;
+    line-height: 1.5;
+  }
+  .cloud-warning {
+    margin-bottom: 20px;
+    padding: 13px 16px;
+    border: 1px solid rgba(255,209,102,.35);
+    border-radius: 12px;
+    background: rgba(255,209,102,.08);
+    color: #f7dfae;
+    font-size: .82rem;
+    line-height: 1.5;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; animation: panelIn .28s ease; }
+  @keyframes panelIn {
+    0% { opacity: 0; transform: translateY(8px); }
+    100% { opacity: 1; transform: none; }
+  }
+
+  /* ==========================================================
+     Cards + forms
+     ========================================================== */
+  .card {
+    margin-bottom: 20px;
+    padding: 22px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.015)), var(--panel);
+    box-shadow: 0 24px 60px -50px #000;
+  }
+  .card h2, .card h3 { margin: 0 0 5px; font-size: 1.03rem; letter-spacing: -.01em; }
+  .card .card-sub { margin: 0 0 18px; color: var(--muted); font-size: .82rem; line-height: 1.55; }
+  .card h2 + .card-sub { max-width: 720px; }
+  .card h3 { font-size: .96rem; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; }
+  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0 14px; }
+  .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 15px; }
+  .field > span, .label { color: #d9cfe8; font-size: .78rem; font-weight: 700; }
+  .field small, .hint { color: #8d7fa1; font-size: .72rem; line-height: 1.5; }
+  .hint { margin: 10px 0 0; }
+  input[type="text"], input[type="password"], input[type="number"], input[type="search"], textarea, select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: #0f0a17;
+    color: var(--text);
+    font-size: .9rem;
+    line-height: 1.45;
+    outline: none;
+    transition: border-color .18s, box-shadow .18s, background .18s;
+  }
+  input::placeholder, textarea::placeholder { color: #6f617f; }
+  input:focus, textarea:focus, select:focus {
+    border-color: rgba(255,95,158,.55);
+    box-shadow: 0 0 0 3px rgba(255,95,158,.13);
+    background: #120c1c;
+  }
+  textarea { min-height: 92px; resize: vertical; }
+  select { appearance: none; background-image: linear-gradient(45deg, transparent 50%, #9b8bad 50%), linear-gradient(135deg, #9b8bad 50%, transparent 50%); background-position: calc(100% - 17px) 50%, calc(100% - 12px) 50%; background-size: 5px 5px; background-repeat: no-repeat; padding-right: 34px; cursor: pointer; }
+  input[type="color"] {
+    width: 100%;
+    height: 44px;
+    padding: 4px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: #0f0a17;
+    cursor: pointer;
+  }
+  input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+  input[type="color"]::-webkit-color-swatch { border: 0; border-radius: 6px; }
+
+  .panel-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 18px;
+  }
+  .panel-head h2 { margin: 0 0 4px; font-size: 1.18rem; }
+  .panel-head p { margin: 0; color: var(--muted); font-size: .84rem; line-height: 1.5; }
+  .fine {
+    margin: 14px 0 0;
+    color: #8d7fa1;
+    font-size: .74rem;
+    line-height: 1.55;
+  }
+  .empty-state {
+    padding: 30px 20px;
+    border: 1px dashed rgba(255,255,255,.18);
+    border-radius: var(--radius);
+    color: var(--muted);
+    font-size: .85rem;
+    line-height: 1.6;
+    text-align: center;
+  }
+  /* ==========================================================
+     Dashboard
+     ========================================================== */
+  .hero-card {
+    position: relative;
+    overflow: hidden;
+    padding: 28px;
+    border: 1px solid rgba(255,95,158,.24);
+    border-radius: 20px;
+    background:
+      radial-gradient(500px 260px at 88% -10%, rgba(139,92,246,.28), transparent 65%),
+      radial-gradient(400px 240px at 4% 110%, rgba(255,95,158,.18), transparent 65%),
+      var(--panel);
+    margin-bottom: 20px;
+  }
+  .hero-card h2 { margin: 0 0 8px; font-size: clamp(1.3rem, 2.6vw, 1.7rem); }
+  .hero-card p { max-width: 560px; margin: 0 0 18px; color: var(--muted); font-size: .9rem; line-height: 1.6; }
+  .hero-card .btn-row { display: flex; flex-wrap: wrap; gap: 10px; }
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+  .stat-card {
+    padding: 18px;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: var(--panel);
+  }
+  .stat-icon {
+    color: var(--muted);
+    font-size: .62rem;
+    font-weight: 800;
+    letter-spacing: .14em;
+  }
+  .stat-value {
+    margin: 8px 0 2px;
+    font-size: 1.9rem;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -.03em;
+    background: linear-gradient(120deg, var(--pink), var(--gold));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .stat-label { color: var(--muted); font-size: .76rem; }
+  .storage-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 8px;
+    color: var(--muted);
+    font-size: .78rem;
+  }
+  .storage-bar {
+    height: 9px;
+    margin-bottom: 12px;
+    border-radius: 999px;
+    background: rgba(255,255,255,.08);
+    overflow: hidden;
+  }
+  .storage-fill {
+    width: 0%;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, var(--pink), var(--violet), var(--gold));
+    transition: width .4s ease;
+  }
+  .tip-list { margin: 0; padding: 0 0 0 18px; color: var(--muted); font-size: .84rem; line-height: 1.8; }
+  .tip-list strong { color: var(--text); }
+  .quick-grid { display: flex; flex-wrap: wrap; gap: 9px; }
+  .quick-grid .btn { justify-content: flex-start; }
+
+  /* ==========================================================
+     Uploads + media
+     ========================================================== */
+  .dropzone {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 138px;
+    margin-bottom: 20px;
+    padding: 22px;
+    border: 1.5px dashed rgba(255,255,255,.22);
+    border-radius: var(--radius);
+    background: rgba(255,255,255,.022);
+    text-align: center;
+    cursor: pointer;
+    transition: border-color .2s, background .2s, transform .2s;
+  }
+  .dropzone:hover, .dropzone.dragover {
+    border-color: var(--pink);
+    background: rgba(255,95,158,.07);
+  }
+  .dropzone.dragover { transform: scale(1.005); }
+  .dropzone .dz-icon {
+    display: grid;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: rgba(255,255,255,.08);
+    color: var(--pink);
+    font-size: 1.35rem;
+    font-weight: 800;
+  }
+  .dropzone strong { font-size: .92rem; }
+  .dropzone small { color: var(--muted); font-size: .75rem; line-height: 1.5; }
+  .media-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(215px, 1fr));
+    gap: 15px;
+  }
+  .media-card {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: var(--panel);
+  }
+  .media-thumb { position: relative; aspect-ratio: 1 / 1; background: #0b0712; overflow: hidden; }
+  .media-thumb video { width: 100%; height: 100%; object-fit: cover; }
+  .media-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .media-card.video-card-admin .media-thumb { aspect-ratio: 16 / 9; }
+  .media-body { display: flex; flex-direction: column; gap: 8px; padding: 12px; }
+  .media-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    color: var(--muted);
+    font-size: .68rem;
+    line-height: 1.4;
+  }
+  .media-meta .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .media-body input { padding: 8px 10px; font-size: .82rem; }
+  .media-actions { display: flex; align-items: center; gap: 5px; }
+  .media-actions .spacer { flex: 1; }
+  .icon-btn {
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: rgba(255,255,255,.04);
+    color: var(--text);
+    font-size: .82rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: background .16s, border-color .16s, opacity .16s;
+  }
+  .icon-btn:hover { background: rgba(255,255,255,.12); }
+  .icon-btn.danger:hover { background: rgba(251,113,133,.18); border-color: rgba(251,113,133,.45); }
+  .icon-btn:disabled { opacity: .3; cursor: default; }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    border-radius: 999px;
+    background: rgba(255,95,158,.16);
+    border: 1px solid rgba(255,95,158,.35);
+    color: #ffc3da;
+    font-size: .63rem;
+    font-weight: 800;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+  }
+  .cover-btn { font-size: .68rem; font-weight: 700; padding: 5px 8px; border-radius: 7px; }
+
+  .song-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-bottom: 11px;
+    padding: 14px;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: var(--panel);
+    transition: border-color .2s, box-shadow .2s;
+  }
+  .song-row.active {
+    border-color: rgba(255,95,158,.5);
+    box-shadow: inset 0 0 0 1px rgba(255,95,158,.18);
+  }
+  .song-icon {
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    flex: 0 0 auto;
+    border-radius: 11px;
+    background: linear-gradient(135deg, rgba(255,95,158,.25), rgba(139,92,246,.25));
+    font-size: 1.2rem;
+    font-weight: 800;
+  }
+  .song-row.active .song-icon { color: var(--pink); }
+  .song-main { flex: 1; min-width: 230px; display: flex; flex-direction: column; gap: 8px; }
+  .song-inputs { display: grid; grid-template-columns: 1.3fr 1fr; gap: 8px; }
+  .song-inputs input { padding: 8px 10px; font-size: .82rem; }
+  .song-audio { width: 100%; height: 32px; }
+  .song-actions { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .song-meta { color: var(--muted); font-size: .68rem; }
+
+  /* ==========================================================
+     Scenes + secrets
+     ========================================================== */
+  .scene-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+    padding: 11px 13px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: rgba(255,255,255,.025);
+    transition: opacity .2s, border-color .2s;
+  }
+  .scene-row.off { opacity: .55; }
+  .scene-row:hover { border-color: rgba(255,255,255,.16); }
+  .scene-icon {
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    flex: 0 0 auto;
+    border-radius: 8px;
+    background: rgba(255,255,255,.07);
+    color: var(--muted);
+    font-size: .68rem;
+    font-weight: 800;
+    letter-spacing: .04em;
+    font-variant-numeric: tabular-nums;
+  }
+  .scene-info { flex: 1; min-width: 0; }
+  .scene-info strong { display: block; font-size: .87rem; }
+  .scene-info small { color: var(--muted); font-size: .72rem; line-height: 1.4; }
+  .scene-check { position: relative; width: 20px; height: 20px; flex: 0 0 auto; }
+  .scene-check input { width: 20px; height: 20px; margin: 0; accent-color: var(--pink); cursor: pointer; }
+  .scene-controls { display: flex; gap: 4px; }
+  .toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 12px 0;
+    border-bottom: 1px dashed var(--line);
+  }
+  .toggle:last-child { border-bottom: 0; padding-bottom: 0; }
+  .toggle:first-of-type { padding-top: 0; }
+  .toggle-text strong { display: block; font-size: .86rem; }
+  .toggle-text small { color: var(--muted); font-size: .72rem; line-height: 1.45; }
+  .switch { position: relative; width: 44px; height: 25px; flex: 0 0 auto; }
+  .switch input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; z-index: 2; }
+  .switch .track {
+    position: absolute;
+    inset: 0;
+    border-radius: 999px;
+    background: #352747;
+    transition: background .2s;
+    pointer-events: none;
+  }
+  .switch .track::after {
+    content: '';
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 19px;
+    height: 19px;
+    border-radius: 50%;
+    background: #b9a9cc;
+    transition: transform .2s, background .2s;
+  }
+  .switch input:checked + .track { background: linear-gradient(90deg, var(--pink), var(--violet)); }
+  .switch input:checked + .track::after { transform: translateX(19px); background: #fff; }
+
+  /* ==========================================================
+     Theme + settings + misc
+     ========================================================== */
+  .preset-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 20px; }
+  .preset {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+    padding: 12px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: rgba(255,255,255,.025);
+    color: var(--text);
+    font-size: .8rem;
+    font-weight: 700;
+    text-align: left;
+    cursor: pointer;
+    transition: border-color .18s, background .18s, transform .18s;
+  }
+  .preset:hover { background: rgba(255,255,255,.06); transform: translateY(-1px); }
+  .preset.active { border-color: var(--pink); background: rgba(255,95,158,.08); }
+  .swatches { display: flex; gap: 4px; }
+  .swatch { width: 100%; height: 20px; border-radius: 5px; border: 1px solid rgba(255,255,255,.14); }
+  .theme-preview {
+    padding: 22px;
+    border-radius: 16px;
+    border: 1px solid var(--line);
+    background: linear-gradient(150deg, var(--p-bg1, #1b1035), var(--p-bg2, #3d1a5b));
+    color: var(--p-text, #fff7ff);
+    text-align: center;
+  }
+  .theme-preview .tp-kicker {
+    margin: 0 0 6px;
+    color: var(--p-accent, #ff5f9e);
+    font-size: .62rem;
+    font-weight: 800;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+  }
+  .theme-preview .tp-title {
+    margin: 0 0 10px;
+    font-family: var(--p-font, 'Trebuchet MS', sans-serif);
+    font-size: 1.5rem;
+    font-weight: 900;
+  }
+  .theme-preview .tp-btn {
+    display: inline-block;
+    padding: 8px 16px;
+    border-radius: 999px;
+    background: linear-gradient(120deg, var(--p-accent, #ff5f9e), var(--p-accent2, #8b5cf6));
+    color: #1a0d2b;
+    font-size: .75rem;
+    font-weight: 800;
+  }
+  .setting-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 14px 0;
+    border-bottom: 1px dashed var(--line);
+  }
+  .setting-row:last-child { border-bottom: 0; padding-bottom: 0; }
+  .setting-row:first-child { padding-top: 0; }
+  .setting-row .setting-text strong { display: block; font-size: .88rem; }
+  .setting-row .setting-text small { display: block; margin-top: 3px; color: var(--muted); font-size: .74rem; line-height: 1.5; }
+  .danger-zone { border-color: rgba(251,113,133,.3); background: linear-gradient(180deg, rgba(251,113,133,.06), transparent), var(--panel); }
+  .danger-zone h2 { color: #ffb4c0; }
+  .backup-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+
+  /* ==========================================================
+     Modal / busy / toast
+     ========================================================== */
+  .modal {
+    position: fixed;
+    inset: 0;
+    z-index: 120;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(6,3,12,.72);
+    backdrop-filter: blur(6px);
+  }
+  .modal-card {
+    width: min(440px, 100%);
+    padding: 24px;
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 18px;
+    background: var(--panel-2);
+    box-shadow: 0 40px 90px -30px #000;
+    animation: panelIn .22s ease;
+  }
+  .modal-card h2 { margin: 0 0 8px; font-size: 1.15rem; }
+  .modal-card p { margin: 0 0 20px; color: var(--muted); font-size: .86rem; line-height: 1.6; }
+  .modal-actions { display: flex; justify-content: flex-end; gap: 9px; flex-wrap: wrap; }
+  .busy {
+    position: fixed;
+    inset: 0;
+    z-index: 130;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    background: rgba(6,3,12,.8);
+    backdrop-filter: blur(5px);
+    color: var(--muted);
+    font-size: .85rem;
+  }
+  .spinner {
+    width: 38px;
+    height: 38px;
+    border: 3px solid rgba(255,255,255,.12);
+    border-top-color: var(--pink);
+    border-radius: 50%;
+    animation: spin .8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .toast {
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    z-index: 140;
+    max-width: min(360px, 88vw);
+    padding: 12px 16px;
+    border: 1px solid rgba(255,255,255,.14);
+    border-radius: 12px;
+    background: rgba(28,20,41,.97);
+    box-shadow: 0 24px 60px -24px #000;
+    color: var(--text);
+    font-size: .84rem;
+    line-height: 1.5;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(12px);
+    transition: opacity .28s, transform .28s;
+  }
+  .toast.show { opacity: 1; transform: none; }
+
+  /* ==========================================================
+     Responsive
+     ========================================================== */
+  @media (max-width: 920px) {
+    .app { grid-template-columns: minmax(0, 1fr); }
+    .main, .sidebar { min-width: 0; }
+    .sidebar {
+      position: relative;
+      height: auto;
+      flex-direction: column;
+      gap: 14px;
+      padding: 16px;
+      border-right: 0;
+      border-bottom: 1px solid var(--line);
+      overflow: visible;
+    }
+    .brand { padding: 0; }
+    .sidenav {
+      flex-direction: row;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      scrollbar-width: thin;
+    }
+    .nav-item { width: auto; flex: 0 0 auto; white-space: nowrap; padding: 9px 12px; }
+    .nav-item .ico { width: auto; }
+    .side-foot { flex-direction: row; margin-top: 0; padding-top: 0; }
+    .side-foot .btn { width: auto; flex: 1; }
+    .main { padding-top: 24px; }
+  }
+  @media (max-width: 640px) {
+    .main { padding: 20px 14px 60px; }
+    .card { padding: 17px; border-radius: 14px; }
+    .grid2, .grid3 { grid-template-columns: 1fr; }
+    .topbar h1 { font-size: 1.3rem; }
+    .top-actions { width: 100%; justify-content: space-between; }
+    .top-actions .btn { flex: 0 0 auto; }
+    .media-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
+    .song-inputs { grid-template-columns: 1fr; }
+    .stat-grid { grid-template-columns: 1fr 1fr; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ==========================================================
+     Login / setup
+     ========================================================== -->
+<div class="login-screen" id="loginView">
+  <div class="login-card">
+    <div class="login-logo" aria-hidden="true">BD</div>
+    <p class="eyebrow">Birthday Studio</p>
+    <h1 id="loginTitle">Welcome back</h1>
+    <p class="login-sub" id="loginSub">Unlock the editor to make this birthday completely yours.</p>
+
+    <form id="loginForm" hidden>
+      <label class="field">
+        <span>Admin password</span>
+        <input type="password" id="loginPassword" autocomplete="current-password" required autofocus>
+      </label>
+      <p class="login-hint" id="loginHint"></p>
+      <p class="login-error" id="loginError" role="alert"></p>
+      <button class="btn primary" type="submit">Unlock the studio</button>
+      <button class="login-link" type="button" id="forgotBtn">Forgot password?</button>
+    </form>
+
+    <form id="setupForm" hidden>
+      <label class="field">
+        <span>Create an admin password</span>
+        <input type="password" id="setupPassword" autocomplete="new-password" minlength="4" required>
+        <small>At least 4 characters. Stored only in this browser.</small>
+      </label>
+      <label class="field">
+        <span>Confirm password</span>
+        <input type="password" id="setupConfirm" autocomplete="new-password" minlength="4" required>
+      </label>
+      <label class="field">
+        <span>Password hint <em>(optional)</em></span>
+        <input type="text" id="setupHint" maxlength="60" placeholder="Something only you would know">
+      </label>
+      <p class="login-error" id="setupError" role="alert"></p>
+      <button class="btn primary" type="submit">Create password &amp; start</button>
+    </form>
+
+    <p class="fine-print">
+      This is a local-only gate for a fully static site. It keeps casual visitors out of the
+      editor, but it is not server-grade security. Photos, videos, and songs stay in this browser
+      until you publish them to Supabase or a folder.
+    </p>
+  </div>
+</div>
+
+<!-- ==========================================================
+     App shell
+     ========================================================== -->
+<div class="app" id="appView" hidden>
+  <aside class="sidebar">
+    <div class="brand">
+      <span class="brand-icon" aria-hidden="true">BD</span>
+      <div>
+        <strong>Birthday Studio</strong>
+        <small>Local editor</small>
+      </div>
+    </div>
+
+    <nav class="sidenav" id="sidenav" aria-label="Editor sections">
+      <button class="nav-item active" type="button" data-tab="dashboard"><span class="ico">DB</span>Dashboard</button>
+      <button class="nav-item" type="button" data-tab="content"><span class="ico">Aa</span>Text &amp; copy</button>
+      <button class="nav-item" type="button" data-tab="photos"><span class="ico">PH</span>Photos</button>
+      <button class="nav-item" type="button" data-tab="videos"><span class="ico">VD</span>Videos</button>
+      <button class="nav-item" type="button" data-tab="music"><span class="ico">♪</span>Music</button>
+      <button class="nav-item" type="button" data-tab="scenes"><span class="ico">SC</span>Scenes &amp; secrets</button>
+      <button class="nav-item" type="button" data-tab="theme"><span class="ico">TH</span>Theme &amp; effects</button>
+      <button class="nav-item" type="button" data-tab="settings"><span class="ico">ST</span>Settings</button>
+    </nav>
+
+    <div class="side-foot">
+      <a class="btn ghost small" href="index.html" target="_blank" rel="noopener">Open site ↗</a>
+      <button class="btn ghost small" type="button" id="lockBtn">Lock</button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <div>
+        <h1 id="tabTitle">Dashboard</h1>
+        <p id="tabSub">A quick look at your birthday site.</p>
+      </div>
+      <div class="top-actions">
+        <span class="save-state" id="saveState">All changes saved</span>
+        <button class="btn primary small" type="button" id="saveBtn">Save changes</button>
+      </div>
+    </header>
+
+    <div class="storage-warning" id="storageWarning" hidden>
+      <strong>Heads up:</strong> this browser is not allowing IndexedDB storage, so uploads and
+      saved edits may disappear. Try a normal (non-private) Chrome or Firefox window.
+    </div>
+
+    <div class="cloud-warning" id="cloudWarning" hidden>
+      <span><strong id="cloudWarningTitle"></strong><span id="cloudWarningText"></span></span>
+      <button class="btn ghost small" type="button" data-goto="settings">Open cloud settings</button>
+    </div>
+
+    <!-- Dashboard -->
+    <section class="tab-panel active" id="tab-dashboard">
+      <div class="hero-card">
+        <h2>Everything is ready for <span id="dashName">Alex</span></h2>
+        <p>Customize every page, upload the memories, and keep the surprises secret. Changes save automatically in this browser.</p>
+        <div class="btn-row">
+          <a class="btn primary small" href="index.html" target="_blank" rel="noopener">Preview the birthday site ↗</a>
+          <button class="btn ghost small" type="button" data-goto="content">Edit the words</button>
+          <button class="btn ghost small" type="button" data-goto="photos">Upload photos</button>
+        </div>
+      </div>
+
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="stat-icon">PH</div>
+          <p class="stat-value" id="statPhotos">0</p>
+          <p class="stat-label">photos</p>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">VID</div>
+          <p class="stat-value" id="statVideos">0</p>
+          <p class="stat-label">videos</p>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">AUD</div>
+          <p class="stat-value" id="statSongs">0</p>
+          <p class="stat-label">songs</p>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">PGS</div>
+          <p class="stat-value" id="statScenes">0</p>
+          <p class="stat-label">pages enabled</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Storage in this browser</h2>
+        <p class="card-sub">Uploads live in this browser's storage. Use backups, Supabase cloud, or a published folder to share them.</p>
+        <div class="storage-row">
+          <span id="storageText">Calculating…</span>
+          <span id="storagePersist">—</span>
+        </div>
+        <div class="storage-bar"><div class="storage-fill" id="storageBar"></div></div>
+        <button class="btn ghost small" type="button" id="persistBtn">Ask browser to keep my files</button>
+      </div>
+
+      <div class="card">
+        <h2>Quick actions</h2>
+        <p class="card-sub">Jump straight into the part you want to change.</p>
+        <div class="quick-grid">
+          <button class="btn ghost small" type="button" data-goto="content">Rewrite the letter</button>
+          <button class="btn ghost small" type="button" data-goto="scenes">Change the secrets</button>
+          <button class="btn ghost small" type="button" data-goto="theme">Pick a theme</button>
+          <button class="btn ghost small" type="button" data-goto="settings">Make a backup</button>
+        </div>
+        <ul class="tip-list">
+          <li><strong>Start here:</strong> open <em>Text &amp; copy</em> and replace “Alex” with the birthday person's name.</li>
+          <li>Photos, videos, and songs are optional — the site looks good with its built-in placeholders too.</li>
+          <li>Everything is stored on this device. Make a backup before clearing browser data.</li>
+          <li>Use <em>Settings → Publish folder</em> when you are ready to host the site and share a link.</li>
+        </ul>
+      </div>
+    </section>
+    <!-- Text & copy -->
+    <section class="tab-panel" id="tab-content">
+      <div class="card">
+        <h2>The birthday person</h2>
+        <p class="card-sub">The name appears in the greeting, the balloon message, and the letter. Use <code>{name}</code> inside any other text to insert it automatically.</p>
+        <div class="grid2">
+          <label class="field">
+            <span>Name</span>
+            <input type="text" data-bind="general.name" maxlength="40" placeholder="Alex">
+          </label>
+          <label class="field">
+            <span>Greeting line</span>
+            <input type="text" data-bind="general.heroPrefix" maxlength="60" placeholder="Happy Birthday">
+          </label>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Gift page</h2>
+        <p class="card-sub">The very first page — a wrapped box waiting to be opened.</p>
+        <div class="grid2">
+          <label class="field">
+            <span>Kicker</span>
+            <input type="text" data-bind="general.giftKicker">
+          </label>
+          <label class="field">
+            <span>Box hint</span>
+            <input type="text" data-bind="general.giftHint">
+          </label>
+        </div>
+        <label class="field">
+          <span>Prompt</span>
+          <input type="text" data-bind="general.giftPrompt">
+        </label>
+        <div class="grid2">
+          <label class="field">
+            <span>Button after opening</span>
+            <input type="text" data-bind="general.giftCta">
+          </label>
+          <label class="field">
+            <span>Message after opening</span>
+            <input type="text" data-bind="general.giftOpened">
+          </label>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Birthday page</h2>
+        <label class="field">
+          <span>Kicker</span>
+          <input type="text" data-bind="general.heroKicker" maxlength="60">
+        </label>
+        <div class="grid2">
+          <label class="field">
+            <span>Subtitle</span>
+            <textarea data-bind="general.heroSubtitle" rows="3"></textarea>
+          </label>
+          <label class="field">
+            <span>Small hint under the button</span>
+            <textarea data-bind="general.heroHint" rows="3"></textarea>
+          </label>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Buttons &amp; labels</h2>
+        <p class="card-sub">The small interface words around the interactive bits.</p>
+        <div class="grid2">
+          <label class="field"><span>Greeting button</span><input type="text" data-bind="general.heroCta"></label>
+          <label class="field"><span>Loading message</span><input type="text" data-bind="general.loaderText"></label>
+          <label class="field"><span>Mic button</span><input type="text" data-bind="general.micStartLabel"></label>
+          <label class="field"><span>Mic listening</span><input type="text" data-bind="general.micStopLabel"></label>
+          <label class="field"><span>Mic unavailable</span><input type="text" data-bind="general.micUnavailableLabel"></label>
+          <label class="field"><span>Relight candles</span><input type="text" data-bind="general.relightLabel"></label>
+          <label class="field"><span>Balloon replay</span><input type="text" data-bind="general.balloonsReplayLabel"></label>
+          <label class="field"><span>Fortune label</span><input type="text" data-bind="general.fortuneLabel"></label>
+          <label class="field"><span>Scratch card prompt</span><input type="text" data-bind="general.scratchCta"></label>
+          <label class="field"><span>Scratch reset</span><input type="text" data-bind="general.scratchResetLabel"></label>
+          <label class="field"><span>Skip typing</span><input type="text" data-bind="general.letterSkipLabel"></label>
+          <label class="field"><span>Hold-for-love button</span><input type="text" data-bind="general.holdHeartLabel"></label>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Cake page</h2>
+        <div class="grid2">
+          <label class="field">
+            <span>Kicker</span>
+            <input type="text" data-bind="general.cakeKicker">
+          </label>
+          <label class="field">
+            <span>Title</span>
+            <input type="text" data-bind="general.cakeTitle">
+          </label>
+        </div>
+        <label class="field">
+          <span>Subtitle / instructions</span>
+          <input type="text" data-bind="general.cakeSubtitle">
+        </label>
+        <label class="field">
+          <span>Message after all candles are out</span>
+          <textarea data-bind="general.wishGranted" rows="2"></textarea>
+        </label>
+      </div>
+
+      <div class="card">
+        <h2>Memories pages</h2>
+        <p class="card-sub">The subtitles and empty-state notes for the photo and video pages.</p>
+        <div class="grid2">
+          <div>
+            <div class="grid2">
+              <label class="field"><span>Photos kicker</span><input type="text" data-bind="general.photosKicker"></label>
+              <label class="field"><span>Photos title</span><input type="text" data-bind="general.photosTitle"></label>
+            </div>
+            <label class="field"><span>Photos subtitle</span><input type="text" data-bind="general.photosSubtitle"></label>
+            <label class="field"><span>Note when there are no photos</span><textarea data-bind="general.photosEmpty" rows="2"></textarea></label>
+          </div>
+          <div>
+            <div class="grid2">
+              <label class="field"><span>Videos kicker</span><input type="text" data-bind="general.videosKicker"></label>
+              <label class="field"><span>Videos title</span><input type="text" data-bind="general.videosTitle"></label>
+            </div>
+            <label class="field"><span>Videos subtitle</span><input type="text" data-bind="general.videosSubtitle"></label>
+            <label class="field"><span>Note when there are no videos</span><textarea data-bind="general.videosEmpty" rows="2"></textarea></label>
+          </div>
+        </div>
+        <div class="grid3">
+          <label class="field"><span>Placeholder caption 1</span><input type="text" data-bind="general.photoPlaceholder1"></label>
+          <label class="field"><span>Placeholder caption 2</span><input type="text" data-bind="general.photoPlaceholder2"></label>
+          <label class="field"><span>Placeholder caption 3</span><input type="text" data-bind="general.photoPlaceholder3"></label>
+        </div>
+        <p class="fine">These captions appear on the three decorative polaroids when no photos have been uploaded. Uploaded photos use their own captions.</p>
+      </div>
+
+      <div class="card">
+        <h2>Games pages</h2>
+        <div class="grid2">
+          <div>
+            <div class="grid2">
+              <label class="field"><span>Balloons kicker</span><input type="text" data-bind="general.balloonsKicker"></label>
+              <label class="field"><span>Balloons title</span><input type="text" data-bind="general.balloonsTitle"></label>
+            </div>
+            <label class="field"><span>Balloons subtitle</span><input type="text" data-bind="general.balloonsSubtitle"></label>
+            <label class="field"><span>Message after all balloons pop</span><input type="text" data-bind="general.balloonsDone"></label>
+          </div>
+          <div>
+            <div class="grid2">
+              <label class="field"><span>Gifts kicker</span><input type="text" data-bind="general.giftsKicker"></label>
+              <label class="field"><span>Gifts title</span><input type="text" data-bind="general.giftsTitle"></label>
+            </div>
+            <label class="field"><span>Gifts subtitle</span><input type="text" data-bind="general.giftsSubtitle"></label>
+            <label class="field"><span>Scratch kicker</span><input type="text" data-bind="general.scratchKicker"></label>
+          </div>
+        </div>
+        <div class="grid2">
+          <label class="field"><span>Scratch title</span><input type="text" data-bind="general.scratchTitle"></label>
+          <label class="field"><span>Scratch subtitle</span><input type="text" data-bind="general.scratchSubtitle"></label>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>The letter</h2>
+        <p class="card-sub">Line breaks are preserved. <code>{name}</code> works here too.</p>
+        <div class="grid2">
+          <label class="field"><span>Kicker</span><input type="text" data-bind="general.letterKicker"></label>
+          <label class="field"><span>Title</span><input type="text" data-bind="general.letterTitle"></label>
+        </div>
+        <label class="field">
+          <span>Letter body</span>
+          <textarea data-bind="general.letterBody" rows="10"></textarea>
+        </label>
+        <label class="field">
+          <span>Signature</span>
+          <textarea data-bind="general.signature" rows="2"></textarea>
+        </label>
+      </div>
+
+      <div class="card">
+        <h2>Finale</h2>
+        <div class="grid2">
+          <label class="field"><span>Kicker</span><input type="text" data-bind="general.finaleKicker"></label>
+          <label class="field"><span>Title</span><input type="text" data-bind="general.finaleTitle"></label>
+        </div>
+        <label class="field"><span>Subtitle</span><input type="text" data-bind="general.finaleSubtitle"></label>
+        <div class="grid2">
+          <label class="field"><span>Replay button</span><input type="text" data-bind="general.replayLabel"></label>
+          <label class="field"><span>Copy-link button</span><input type="text" data-bind="general.copyLabel"></label>
+        </div>
+        <label class="field"><span>Easter egg hint</span><input type="text" data-bind="general.easterEggHint"></label>
+      </div>
+    </section>
+
+    <!-- Photos -->
+    <section class="tab-panel" id="tab-photos">
+      <div class="panel-head">
+        <div>
+          <h2>Photo memories</h2>
+          <p>Upload photos and they become flip-to-read polaroids on the Photo Memories page.</p>
+        </div>
+        <button class="btn primary small" type="button" id="addPhotosBtn">+ Upload photos</button>
+      </div>
+      <input type="file" id="photoInput" accept="image/*" multiple hidden>
+      <div class="dropzone" id="photoDrop" role="button" tabindex="0" aria-label="Upload photos">
+        <span class="dz-icon" aria-hidden="true">↑</span>
+        <strong>Drop photos here</strong>
+        <small>or click to choose files · JPG, PNG, WebP, GIF, AVIF · up to 25 MB each</small>
+      </div>
+      <div class="media-grid" id="photoList"></div>
+      <p class="fine">The first photo is used as a soft background on the gift page. Click <em>Cover</em> on any photo to change it. Deleted photos are removed from this browser.</p>
+    </section>
+
+    <!-- Videos -->
+    <section class="tab-panel" id="tab-videos">
+      <div class="panel-head">
+        <div>
+          <h2>Video memories</h2>
+          <p>Clips appear as cinematic cards on the Video Memories page.</p>
+        </div>
+        <button class="btn primary small" type="button" id="addVideosBtn">+ Upload videos</button>
+      </div>
+      <input type="file" id="videoInput" accept="video/*" multiple hidden>
+      <div class="dropzone" id="videoDrop" role="button" tabindex="0" aria-label="Upload videos">
+        <span class="dz-icon" aria-hidden="true">↑</span>
+        <strong>Drop videos here</strong>
+        <small>or click to choose files · MP4, WebM, MOV · up to 500 MB each</small>
+      </div>
+      <div class="media-grid" id="videoList"></div>
+      <p class="fine">Large videos use a lot of browser storage. If you plan to share the site, use <em>Settings → Publish folder</em> so the files become normal hosted files.</p>
+    </section>
+
+    <!-- Music -->
+    <section class="tab-panel" id="tab-music">
+      <div class="panel-head">
+        <div>
+          <h2>Music</h2>
+          <p>Upload songs for the music button. With no songs, the site plays a synthesized birthday melody.</p>
+        </div>
+        <button class="btn primary small" type="button" id="addSongsBtn">+ Upload songs</button>
+      </div>
+      <input type="file" id="songInput" accept="audio/*" multiple hidden>
+      <div class="dropzone" id="songDrop" role="button" tabindex="0" aria-label="Upload songs">
+        <span class="dz-icon" aria-hidden="true">↑</span>
+        <strong>Drop songs here</strong>
+        <small>or click to choose files · MP3, WAV, OGG, M4A · up to 50 MB each</small>
+      </div>
+      <div id="songList"></div>
+      <p class="fine">Choose one song as the active track. If you upload several, the site plays through them in order. Music starts when the gift box is opened, or when the music button is pressed.</p>
+    </section>
+    <!-- Scenes & secrets -->
+    <section class="tab-panel" id="tab-scenes">
+      <div class="card">
+        <h2>Page order &amp; visibility</h2>
+        <p class="card-sub">Turn pages off to skip them. Use the arrows to change the order visitors experience.</p>
+        <div id="sceneList"></div>
+        <p class="fine">If every page is hidden, the site falls back to the birthday greeting so it never shows a blank screen.</p>
+      </div>
+
+      <div class="grid2">
+        <div class="card">
+          <h2>Balloon message</h2>
+          <p class="card-sub">Each letter becomes one balloon. Keep it short and celebratory.</p>
+          <label class="field">
+            <span>Hidden message <small id="balloonCount">0 / 52</small></span>
+            <textarea id="balloonMessageBox" data-bind="scenes.balloonsMessage" maxlength="52" rows="2"></textarea>
+          </label>
+          <p class="fine">Use <code>{name}</code> to include the name automatically. Spaces create separate words in the answer.</p>
+        </div>
+
+        <div class="card">
+          <h2>Scratch card secret</h2>
+          <p class="card-sub">Hidden under the foil on the Pick a Gift page.</p>
+          <label class="field">
+            <span>Secret message</span>
+            <textarea data-bind="scenes.scratchSecret" rows="3" maxlength="140"></textarea>
+          </label>
+          <div class="toggle">
+            <div class="toggle-text">
+              <strong>Show the scratch card</strong>
+              <small>Hide it if you only want the fortunes.</small>
+            </div>
+            <label class="switch">
+              <input type="checkbox" data-bind="scenes.showScratch" aria-label="Show the scratch card">
+              <span class="track"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div class="card">
+          <h2>Gift fortunes</h2>
+          <p class="card-sub">One per line. The three gift boxes draw from this list without repeating until it runs out.</p>
+          <label class="field">
+            <span>Fortunes</span>
+            <textarea id="fortunesBox" rows="8"></textarea>
+          </label>
+        </div>
+
+        <div class="card">
+          <h2>Secret extras</h2>
+          <p class="card-sub">The tiny surprises visitors can discover.</p>
+          <div class="toggle">
+            <div class="toggle-text">
+              <strong>Balloon shower easter egg</strong>
+              <small>Pressing <kbd>B</kbd> anywhere rains balloons (when a keyboard is available).</small>
+            </div>
+            <label class="switch">
+              <input type="checkbox" data-bind="scenes.easterEgg" aria-label="Enable the balloon easter egg">
+              <span class="track"></span>
+            </label>
+          </div>
+          <div class="toggle">
+            <div class="toggle-text">
+              <strong>Floating balloons</strong>
+              <small>Decorative balloons drift behind the gift and birthday pages.</small>
+            </div>
+            <span class="badge">Always on</span>
+          </div>
+          <div class="toggle">
+            <div class="toggle-text">
+              <strong>Cursor sparkles &amp; click confetti</strong>
+              <small>Controlled under Theme &amp; effects.</small>
+            </div>
+            <button class="btn ghost small" type="button" data-goto="theme">Open theme</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Theme & effects -->
+    <section class="tab-panel" id="tab-theme">
+      <div class="card">
+        <h2>Theme presets</h2>
+        <p class="card-sub">A quick starting point — then fine-tune the colors below.</p>
+        <div class="preset-grid" id="themePresets"></div>
+      </div>
+
+      <div class="grid2">
+        <div class="card">
+          <h2>Colors &amp; font</h2>
+          <p class="card-sub">The site rebuilds its look from these five colors.</p>
+          <div class="grid3">
+            <label class="field"><span>Accent</span><input type="color" id="themeAccent" data-bind="theme.accent"></label>
+            <label class="field"><span>Second accent</span><input type="color" id="themeAccent2" data-bind="theme.accent2"></label>
+            <label class="field"><span>Text</span><input type="color" id="themeText" data-bind="theme.text"></label>
+          </div>
+          <div class="grid2">
+            <label class="field"><span>Background start</span><input type="color" id="themeBg1" data-bind="theme.bg1"></label>
+            <label class="field"><span>Background end</span><input type="color" id="themeBg2" data-bind="theme.bg2"></label>
+          </div>
+          <label class="field">
+            <span>Display font</span>
+            <select data-bind="theme.font">
+              <option value="rounded">Rounded &amp; friendly (Trebuchet)</option>
+              <option value="display">Bold &amp; playful (Arial Black)</option>
+              <option value="serif">Elegant serif (Georgia)</option>
+              <option value="mono">Quirky typewriter</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="card">
+          <h2>Live preview</h2>
+          <p class="card-sub">A rough feel for the palette; the real site adds balloons, confetti, and motion.</p>
+          <div class="theme-preview" id="themePreview">
+            <p class="tp-kicker">A little something for you</p>
+            <p class="tp-title" id="themePreviewTitle">Happy Birthday, Alex!</p>
+            <span class="tp-btn">Keep going →</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Effects</h2>
+        <div class="toggle">
+          <div class="toggle-text">
+            <strong>Confetti intensity</strong>
+            <small>How much confetti the clicks, balloons, and fireworks produce.</small>
+          </div>
+          <select id="confettiSelect" data-bind="settings.confetti" style="width:150px">
+            <option value="low">Gentle</option>
+            <option value="medium">Festive</option>
+            <option value="high">Maximum</option>
+          </select>
+        </div>
+        <div class="toggle">
+          <div class="toggle-text">
+            <strong>Cursor sparkles</strong>
+            <small>A trail of little stars follows the mouse on desktop.</small>
+          </div>
+          <label class="switch">
+            <input type="checkbox" data-bind="settings.cursorSparkles" aria-label="Enable cursor sparkles">
+            <span class="track"></span>
+          </label>
+        </div>
+        <div class="toggle">
+          <div class="toggle-text">
+            <strong>Music</strong>
+            <small>Show the music toggle. The song starts when the gift is opened.</small>
+          </div>
+          <label class="switch">
+            <input type="checkbox" data-bind="settings.music" aria-label="Enable music">
+            <span class="track"></span>
+          </label>
+        </div>
+        <div class="toggle">
+          <div class="toggle-text">
+            <strong>Auto-advance</strong>
+            <small>Move to the next page automatically. Off is recommended so nobody misses a surprise.</small>
+          </div>
+          <select id="autoAdvanceSelect" data-bind="settings.autoAdvance" style="width:150px">
+            <option value="0">Off</option>
+            <option value="20">Every 20s</option>
+            <option value="35">Every 35s</option>
+            <option value="50">Every 50s</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <!-- Settings -->
+    <section class="tab-panel" id="tab-settings">
+      <div class="card">
+        <h2>Admin password</h2>
+        <p class="card-sub">A built-in default password works until you replace it here. A password set here overrides the default in this browser only.</p>
+        <form id="passwordForm">
+          <div class="grid2">
+            <label class="field">
+              <span>Current password</span>
+              <input type="password" id="currentPassword" autocomplete="current-password">
+            </label>
+            <label class="field">
+              <span>New password</span>
+              <input type="password" id="newPassword" autocomplete="new-password" minlength="4">
+            </label>
+          </div>
+          <div class="grid2">
+            <label class="field">
+              <span>Confirm new password</span>
+              <input type="password" id="confirmPassword" autocomplete="new-password" minlength="4">
+            </label>
+            <label class="field">
+              <span>Password hint <em>(optional)</em></span>
+              <input type="text" id="adminHint" maxlength="60" placeholder="Shown on the login screen">
+            </label>
+          </div>
+          <button class="btn primary small" type="submit">Update password</button>
+        </form>
+      </div>
+
+      <div class="card">
+        <h2>Visitor password</h2>
+        <p class="card-sub">Ask visitors for a password before the birthday site opens. This is a browser-side surprise gate, not real security — the published data and media links stay public.</p>
+        <p class="fine" id="gateStatus">Checking the visitor password…</p>
+        <div class="grid2">
+          <label class="field">
+            <span>New visitor password</span>
+            <input type="password" id="gatePassword" minlength="4" autocomplete="new-password" placeholder="At least 4 characters">
+          </label>
+          <label class="field">
+            <span>Confirm password</span>
+            <input type="password" id="gateConfirm" minlength="4" autocomplete="new-password">
+          </label>
+        </div>
+        <div class="backup-actions">
+          <button class="btn primary small" type="button" id="gateSaveBtn">Set visitor password</button>
+          <button class="btn ghost small" type="button" id="gateClearBtn">Remove password</button>
+          <button class="btn ghost small" type="button" id="gateDefaultBtn">Use default</button>
+        </div>
+        <p class="fine">A built-in default (<code id="defaultGatePassword">welcome2026</code>) protects a fresh deployment before you publish. Set your own password to replace it. Custom passwords save only a salted hash with the site; after changing this, publish again so the hosted site uses it.</p>
+      </div>
+
+      <div class="card">
+        <h2>Browser storage</h2>
+        <p class="card-sub">Photos, videos, songs, and settings all live in this browser profile.</p>
+        <div class="storage-row">
+          <span id="storageText2">Calculating…</span>
+          <span id="storagePersist2">—</span>
+        </div>
+        <div class="storage-bar"><div class="storage-fill" id="storageBar2"></div></div>
+        <div class="backup-actions">
+          <button class="btn ghost small" type="button" id="persistBtn2">Ask browser to keep my files</button>
+        </div>
+        <p class="fine">Clearing site data, using private browsing, or running out of disk space can erase uploads. Keep a backup.</p>
+      </div>
+
+      <div class="card">
+        <h2>Backup &amp; sharing</h2>
+        <p class="card-sub">A backup contains all text, settings, and media in one file. Import it in another browser to restore everything.</p>
+        <div class="backup-actions">
+          <button class="btn primary small" type="button" id="exportBtn">Download backup</button>
+          <button class="btn ghost small" type="button" id="importBtn">Import backup</button>
+          <button class="btn ghost small" type="button" id="publishBtn">Publish folder</button>
+        </div>
+        <input type="file" id="importInput" accept=".json,application/json,.birthday" hidden>
+        <p class="fine"><strong>Publish folder</strong> writes <code>data/site.json</code> and all media into a folder you choose (Chrome/Edge). Copy it together with <code>index.html</code> and <code>common.js</code> to any static host to share a link. The published site is view-only for visitors; keep editing here.</p>
+      </div>
+
+      <div class="card" id="cloudCard">
+        <h2>Supabase cloud</h2>
+        <p class="card-sub">Publish the site data and media to Supabase so a hosted copy can load them from any device.</p>
+        <p class="fine" id="cloudStatus" role="status">Checking cloud configuration…</p>
+
+        <form id="cloudForm" hidden>
+          <div class="grid2">
+            <label class="field">
+              <span>Admin email</span>
+              <input type="email" id="cloudEmail" autocomplete="username" required>
+            </label>
+            <label class="field">
+              <span>Password</span>
+              <input type="password" id="cloudPassword" autocomplete="current-password" required>
+            </label>
+          </div>
+          <button class="btn primary small" type="submit">Sign in to Supabase</button>
+        </form>
+
+        <div class="backup-actions" style="margin-top:12px">
+          <button class="btn ghost small" type="button" id="cloudSignOutBtn" hidden>Sign out</button>
+          <button class="btn primary small" type="button" id="cloudPublishBtn" disabled>Publish to Supabase</button>
+          <button class="btn ghost small" type="button" id="cloudPullBtn" disabled>Pull from Supabase</button>
+        </div>
+        <p class="fine">The anon key in <code>supabase-config.js</code> is public by design. Writes require the admin account above and are enforced by Row Level Security. Never put the database password or the <code>service_role</code> key in this project.</p>
+      </div>
+
+      <div class="card danger-zone">
+        <h2>Danger zone</h2>
+        <p class="card-sub">Start completely fresh. This deletes text, media, settings, and the admin password from this browser.</p>
+        <button class="btn danger small" type="button" id="resetBtn">Delete everything &amp; reset</button>
+      </div>
+
+      <div class="card">
+        <h2>About</h2>
+        <p class="card-sub">Birthday Studio is a tiny static site: <code>index.html</code>, <code>admin.html</code>, and <code>common.js</code>. No server, no accounts, no external requests.</p>
+        <p class="fine">Photos and videos never leave this device unless you export a backup or publish a folder. The admin password is a local deterrent, not real authentication.</p>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div class="modal" id="modal" hidden>
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <h2 id="modalTitle">Confirm</h2>
+    <p id="modalText"></p>
+    <div class="modal-actions">
+      <button class="btn ghost" type="button" id="modalCancel">Cancel</button>
+      <button class="btn primary" type="button" id="modalOk">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<div class="busy" id="busy" hidden role="status" aria-live="polite">
+  <div class="spinner" aria-hidden="true"></div>
+  <p id="busyText">Working…</p>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="supabase-config.js"></script>
+<script src="common.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  const $ = (sel, root) => (root || document).querySelector(sel);
+  const $$ = (sel, root) => Array.from((root || document).querySelectorAll(sel));
+
+  const TABS = {
+    dashboard: { title: 'Dashboard', sub: 'A quick look at your birthday site.' },
+    content: { title: 'Text & copy', sub: 'Every word on the site is yours to change.' },
+    photos: { title: 'Photos', sub: 'Upload the moments you want to show off.' },
+    videos: { title: 'Videos', sub: 'Add clips to the Movie Memories page.' },
+    music: { title: 'Music', sub: 'Upload songs for the music toggle.' },
+    scenes: { title: 'Scenes & secrets', sub: 'Choose the page order and edit hidden messages.' },
+    theme: { title: 'Theme & effects', sub: 'Colors, fonts, confetti, and the little details.' },
+    settings: { title: 'Settings & backup', sub: 'Password, storage, exports, and resets.' }
+  };
+
+  const state = {
+    cfg: null,
+    bound: false,
+    dirty: false,
+    version: 0,
+    saveTimer: null,
+    currentTab: 'dashboard',
+    storageOk: true,
+    modalResolver: null,
+    busyCount: 0
+  };
+
+  let toastTimer = null;
+
+  /* ==========================================================
+     Small UI helpers
+     ========================================================== */
+  function toast(message) {
+    const el = $('#toast');
+    el.textContent = message;
+    el.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.classList.remove('show'), 3600);
+  }
+
+  function showBusy(text) {
+    state.busyCount++;
+    $('#busyText').textContent = text || 'Working…';
+    $('#busy').hidden = false;
+  }
+
+  function hideBusy() {
+    state.busyCount = Math.max(0, state.busyCount - 1);
+    if (state.busyCount === 0) $('#busy').hidden = true;
+  }
+
+  function setSaveState(text, kind) {
+    const el = $('#saveState');
+    el.textContent = text;
+    el.classList.remove('unsaved', 'saving');
+    if (kind) el.classList.add(kind);
+  }
+
+  function dateStamp() {
+    const d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+
+  function timeLabel() {
+    return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  }
+
+  function ask(title, text, confirmLabel) {
+    return new Promise((resolve) => {
+      $('#modalTitle').textContent = title;
+      $('#modalText').textContent = text;
+      $('#modalOk').textContent = confirmLabel || 'Confirm';
+      $('#modalCancel').hidden = false;
+      $('#modal').hidden = false;
+      state.modalResolver = resolve;
+    });
+  }
+
+  function notify(title, text) {
+    return new Promise((resolve) => {
+      $('#modalTitle').textContent = title;
+      $('#modalText').textContent = text;
+      $('#modalOk').textContent = 'Got it';
+      $('#modalCancel').hidden = true;
+      $('#modal').hidden = false;
+      state.modalResolver = resolve;
+    });
+  }
+
+  function closeModal(value) {
+    $('#modal').hidden = true;
+    const resolver = state.modalResolver;
+    state.modalResolver = null;
+    if (resolver) resolver(value);
+  }
+
+  function bindModal() {
+    $('#modalOk').addEventListener('click', () => closeModal(true));
+    $('#modalCancel').addEventListener('click', () => closeModal(false));
+    $('#modal').addEventListener('click', (event) => {
+      if (event.target === $('#modal')) closeModal(false);
+    });
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && !$('#modal').hidden) closeModal(false);
+    });
+  }
+
+  /* ==========================================================
+     Auth screens
+     ========================================================== */
+  async function init() {
+    bindModal();
+    bindAuth();
+    if (BD.isAuthed()) {
+      await openApp();
+    } else {
+      showLogin();
+    }
+  }
+
+  function showLogin() {
+    $('#loginView').hidden = false;
+    $('#appView').hidden = true;
+    const has = BD.hasPassword();
+    const local = BD.hasLocalPassword();
+    $('#loginForm').hidden = !has;
+    $('#setupForm').hidden = has;
+    $('#loginTitle').textContent = !has ? 'Create your studio' : local ? 'Welcome back' : 'Admin login';
+    $('#loginSub').textContent = !has
+      ? 'Set a local admin password so only you can edit this site.'
+      : local
+        ? 'Unlock the editor to make this birthday completely yours.'
+        : 'Enter the default admin password to open the editor.';
+    $('#loginHint').textContent = has && BD.getHint() ? 'Hint: ' + BD.getHint() : '';
+    $('#loginError').textContent = '';
+    $('#setupError').textContent = '';
+    if (has) {
+      const input = $('#loginPassword');
+      input.value = '';
+      setTimeout(() => input.focus(), 50);
+    } else {
+      const input = $('#setupPassword');
+      input.value = '';
+      $('#setupConfirm').value = '';
+      $('#setupHint').value = BD.getHint();
+      setTimeout(() => input.focus(), 50);
+    }
+  }
+
+  function bindAuth() {
+    $('#setupForm').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const password = $('#setupPassword').value;
+      const confirm = $('#setupConfirm').value;
+      const error = $('#setupError');
+      error.textContent = '';
+      if (password.length < 4) {
+        error.textContent = 'Use at least 4 characters.';
+        return;
+      }
+      if (password !== confirm) {
+        error.textContent = 'The passwords do not match.';
+        return;
+      }
+      await BD.setPassword(password);
+      BD.setHint($('#setupHint').value.trim());
+      BD.setAuthed(true);
+      await openApp();
+      toast('Admin password created. Welcome in!');
+    });
+
+    $('#loginForm').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const password = $('#loginPassword').value;
+      const error = $('#loginError');
+      error.textContent = '';
+      const valid = await BD.verifyPassword(password);
+      if (!valid) {
+        error.textContent = 'That password does not match.';
+        $('#loginPassword').select();
+        return;
+      }
+      BD.setAuthed(true);
+      $('#loginPassword').value = '';
+      await openApp();
+    });
+
+    $('#forgotBtn').addEventListener('click', async () => {
+      const ok = await ask(
+        'Reset the admin password?',
+        'Your photos, videos, songs, and text stay exactly where they are. This only removes the local password so you can create a new one.',
+        'Reset password'
+      );
+      if (!ok) return;
+      BD.clearPassword();
+      BD.setAuthed(false);
+      showLogin();
+      toast(BD.hasPassword() ? 'Local password cleared. Sign in with the default password.' : 'Password cleared. Create a new one to continue.');
+    });
+
+    $('#lockBtn').addEventListener('click', () => {
+      BD.setAuthed(false);
+      location.reload();
+    });
+  }
+
+  /* ==========================================================
+     App boot
+     ========================================================== */
+  async function openApp() {
+    $('#loginView').hidden = true;
+    $('#appView').hidden = false;
+    await loadConfig();
+
+    if (!state.bound) {
+      bindUI();
+      state.bound = true;
+    }
+
+    syncFields();
+    renderAll();
+    populatePasswordForm();
+    switchTab(state.currentTab || 'dashboard');
+    await refreshStorage();
+
+    const storageOk = await BD.checkStorage();
+    state.storageOk = storageOk;
+    $('#storageWarning').hidden = storageOk;
+    updateCloudUI();
+  }
+
+  async function loadConfig() {
+    state.cfg = await BD.getConfig();
+    normalizeConfig();
+  }
+
+  function normalizeConfig() {
+    const cfg = state.cfg;
+    if (!cfg.settings) cfg.settings = {};
+    if (!cfg.media) cfg.media = { photos: [], videos: [], songs: [], activeSongId: null };
+    ['photos', 'videos', 'songs'].forEach((key) => {
+      if (!Array.isArray(cfg.media[key])) cfg.media[key] = [];
+    });
+    if (!Array.isArray(cfg.scenes.fortunes)) cfg.scenes.fortunes = [];
+    if (!Array.isArray(cfg.scenes.order) || !cfg.scenes.order.length) {
+      cfg.scenes.order = BD.SCENES.map((scene) => scene.id);
+    }
+    BD.SCENES.forEach((scene) => {
+      if (typeof cfg.scenes.enabled[scene.id] !== 'boolean') cfg.scenes.enabled[scene.id] = true;
+    });
+  }
+
+  /* ==========================================================
+     Save pipeline
+     ========================================================== */
+  function markDirty() {
+    state.dirty = true;
+    state.version++;
+    setSaveState('Unsaved changes', 'unsaved');
+    clearTimeout(state.saveTimer);
+    state.saveTimer = setTimeout(() => saveNow(), 600);
+  }
+
+  async function saveNow() {
+    if (!state.cfg) return false;
+    clearTimeout(state.saveTimer);
+    state.saveTimer = null;
+    const version = state.version;
+    setSaveState('Saving…', 'saving');
+    const result = await BD.saveConfig(state.cfg);
+    if (state.version === version) {
+      state.dirty = false;
+      setSaveState(result.persisted ? 'Saved ' + timeLabel() : 'Saved with fallback', result.persisted ? '' : 'unsaved');
+    } else {
+      setSaveState('Unsaved changes', 'unsaved');
+    }
+    if (!result.persisted) {
+      toast('Browser storage is unavailable or full — edits are held in a fallback until you reload.');
+    }
+    updateStats();
+    return result.persisted;
+  }
+
+  function bindUI() {
+    $$('#sidenav .nav-item').forEach((button) => {
+      button.addEventListener('click', () => switchTab(button.dataset.tab));
+    });
+
+    $$('[data-goto]').forEach((button) => {
+      button.addEventListener('click', () => switchTab(button.dataset.goto));
+    });
+
+    $('#saveBtn').addEventListener('click', async () => {
+      const ok = await saveNow();
+      toast(ok ? 'All changes saved.' : 'Saved with a local fallback — see the warning.');
+    });
+
+    $$('[data-bind]').forEach((el) => {
+      const path = el.dataset.bind;
+      const handler = () => {
+        const value = el.type === 'checkbox' ? el.checked : el.value;
+        BD.setPath(state.cfg, path, value);
+        if (path === 'scenes.balloonsMessage') updateBalloonCount();
+        if (path.indexOf('theme.') === 0) updateThemePreview();
+        markDirty();
+      };
+      el.addEventListener('input', handler);
+      el.addEventListener('change', handler);
+    });
+
+    $('#fortunesBox').addEventListener('input', () => {
+      state.cfg.scenes.fortunes = $('#fortunesBox').value
+        .split('\n')
+        .map((line) => line.trim())
+        .filter(Boolean);
+      markDirty();
+    });
+
+    $('#balloonMessageBox').addEventListener('input', updateBalloonCount);
+
+    bindUploads();
+    bindTheme();
+    bindSettings();
+    bindCloud();
+
+    $('#passwordForm').addEventListener('submit', handlePasswordChange);
+
+    window.addEventListener('beforeunload', (event) => {
+      if (state.dirty || state.saveTimer) {
+        event.preventDefault();
+        event.returnValue = '';
+      }
+    });
+
+    window.addEventListener('dragover', (event) => {
+      if (event.dataTransfer && Array.from(event.dataTransfer.types || []).includes('Files')) event.preventDefault();
+    });
+    window.addEventListener('drop', (event) => {
+      if (event.target.closest && event.target.closest('.dropzone')) return;
+      if (event.dataTransfer && Array.from(event.dataTransfer.types || []).includes('Files')) event.preventDefault();
+    });
+  }
+
+  /* ==========================================================
+     Fields + tabs + dashboard
+     ========================================================== */
+  function syncFields() {
+    $$('[data-bind]').forEach((el) => {
+      const value = BD.getPath(state.cfg, el.dataset.bind);
+      if (el.type === 'checkbox') el.checked = !!value;
+      else el.value = value == null ? '' : value;
+    });
+  }
+
+  function switchTab(name) {
+    if (!TABS[name]) return;
+    state.currentTab = name;
+    $$('#sidenav .nav-item').forEach((button) => {
+      button.classList.toggle('active', button.dataset.tab === name);
+    });
+    $$('.tab-panel').forEach((panel) => {
+      panel.classList.toggle('active', panel.id === 'tab-' + name);
+    });
+    $('#tabTitle').textContent = TABS[name].title;
+    $('#tabSub').textContent = TABS[name].sub;
+
+    if (name === 'dashboard') updateStats();
+    else if (name === 'photos') renderPhotosAdmin();
+    else if (name === 'videos') renderVideosAdmin();
+    else if (name === 'music') renderSongs();
+    else if (name === 'scenes') {
+      renderSceneList();
+      renderFortunes();
+      updateBalloonCount();
+    } else if (name === 'theme') {
+      renderPresets();
+      updateThemePreview();
+    } else if (name === 'settings') {
+      refreshStorage();
+      populatePasswordForm();
+      updateVisitorGateUI();
+      updateCloudUI();
+    }
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function updateStats() {
+    if (!state.cfg) return;
+    const media = state.cfg.media;
+    $('#statPhotos').textContent = media.photos.length;
+    $('#statVideos').textContent = media.videos.length;
+    $('#statSongs').textContent = media.songs.length;
+    const enabled = state.cfg.scenes.order.filter((id) => state.cfg.scenes.enabled[id] !== false).length;
+    $('#statScenes').textContent = enabled;
+    $('#dashName').textContent = state.cfg.general.name || 'your favourite person';
+  }
+
+  function renderAll() {
+    renderSceneList();
+    renderFortunes();
+    updateBalloonCount();
+    renderPhotosAdmin();
+    renderVideosAdmin();
+    renderSongs();
+    renderPresets();
+    updateThemePreview();
+    updateStats();
+    updateVisitorGateUI();
+    const hintInput = $('#adminHint');
+    if (hintInput) hintInput.value = BD.getHint();
+  }
+
+  async function refreshStorage() {
+    const info = await BD.storageInfo();
+    const percent = info.quota ? Math.min(100, Math.max(0.5, (info.usage / info.quota) * 100)) : 0;
+    const text = info.quota
+      ? BD.formatBytes(info.usage) + ' used of ' + BD.formatBytes(info.quota)
+      : BD.formatBytes(info.usage) + ' used';
+    ['storageText', 'storageText2'].forEach((id) => {
+      const el = $('#' + id);
+      if (el) el.textContent = text;
+    });
+    ['storageBar', 'storageBar2'].forEach((id) => {
+      const el = $('#' + id);
+      if (el) el.style.width = percent + '%';
+    });
+    ['storagePersist', 'storagePersist2'].forEach((id) => {
+      const el = $('#' + id);
+      if (el) el.textContent = info.persisted ? 'Protected from auto-cleanup ✓' : 'Not protected yet';
+    });
+  }
+
+  async function handlePersist() {
+    const granted = await BD.requestPersistence();
+    await refreshStorage();
+    toast(granted
+      ? 'The browser will do its best to keep your files.'
+      : 'The browser did not grant persistent storage. Keep a backup handy.');
+  }
+
+  function populatePasswordForm() {
+    $('#currentPassword').value = '';
+    $('#newPassword').value = '';
+    $('#confirmPassword').value = '';
+    $('#adminHint').value = BD.getHint();
+  }
+
+  async function handlePasswordChange(event) {
+    event.preventDefault();
+    const current = $('#currentPassword').value;
+    const next = $('#newPassword').value;
+    const confirm = $('#confirmPassword').value;
+
+    if (!(await BD.verifyPassword(current))) {
+      toast('The current password is not correct.');
+      $('#currentPassword').select();
+      return;
+    }
+    if (next.length < 4) {
+      toast('The new password needs at least 4 characters.');
+      return;
+    }
+    if (next !== confirm) {
+      toast('The new passwords do not match.');
+      return;
+    }
+    await BD.setPassword(next);
+    BD.setHint($('#adminHint').value.trim());
+    populatePasswordForm();
+    toast('Admin password updated.');
+  }
+
+
+  /* ==========================================================
+     Uploads
+     ========================================================== */
+  function bindUploads() {
+    setupDropzone('photoInput', 'photoDrop', 'photo', 'addPhotosBtn');
+    setupDropzone('videoInput', 'videoDrop', 'video', 'addVideosBtn');
+    setupDropzone('songInput', 'songDrop', 'song', 'addSongsBtn');
+  }
+
+  function setupDropzone(inputId, zoneId, kind, addButtonId) {
+    const input = $('#' + inputId);
+    const zone = $('#' + zoneId);
+    const addButton = $('#' + addButtonId);
+    const open = () => input.click();
+
+    if (addButton) addButton.addEventListener('click', open);
+    zone.addEventListener('click', open);
+    zone.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        open();
+      }
+    });
+
+    input.addEventListener('change', () => {
+      const files = Array.from(input.files || []);
+      input.value = '';
+      if (files.length) handleFiles(kind, files);
+    });
+
+    ['dragenter', 'dragover'].forEach((type) => {
+      zone.addEventListener(type, (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        zone.classList.add('dragover');
+      });
+    });
+    ['dragleave', 'drop'].forEach((type) => {
+      zone.addEventListener(type, (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        zone.classList.remove('dragover');
+      });
+    });
+    zone.addEventListener('drop', (event) => {
+      const files = Array.from((event.dataTransfer && event.dataTransfer.files) || []);
+      if (files.length) handleFiles(kind, files);
+    });
+  }
+
+  async function handleFiles(kind, files) {
+    if (!state.storageOk) {
+      toast('Browser storage is unavailable. Try a normal Chrome or Firefox window.');
+      return;
+    }
+
+    const maxMb = { photo: 25, video: 500, song: 50 };
+    const mimePrefix = { photo: 'image/', video: 'video/', song: 'audio/' };
+    const extensionPattern = {
+      photo: /\.(jpe?g|png|webp|gif|avif|svg)$/i,
+      video: /\.(mp4|webm|mov|m4v|ogv)$/i,
+      song: /\.(mp3|wav|ogg|m4a|aac|flac)$/i
+    };
+
+    const accepted = [];
+    let skipped = 0;
+    files.forEach((file) => {
+      const typeOk = file.type ? file.type.indexOf(mimePrefix[kind]) === 0 : extensionPattern[kind].test(file.name);
+      if (!typeOk || file.size > maxMb[kind] * 1024 * 1024) {
+        skipped++;
+        return;
+      }
+      accepted.push(file);
+    });
+
+    if (!accepted.length) {
+      toast('No usable files — check the file type and size limit.');
+      return;
+    }
+
+    showBusy(kind === 'photo' ? 'Saving photos…' : kind === 'video' ? 'Saving videos…' : 'Saving songs…');
+    try {
+      for (const file of accepted) {
+        const mediaId = BD.uid();
+        await BD.putMedia({
+          id: mediaId,
+          kind: kind,
+          name: file.name,
+          type: file.type,
+          size: file.size,
+          createdAt: Date.now(),
+          blob: file
+        });
+
+        if (kind === 'photo') {
+          state.cfg.media.photos.push({
+            id: BD.uid(),
+            mediaId: mediaId,
+            caption: '',
+            cover: state.cfg.media.photos.length === 0
+          });
+        } else if (kind === 'video') {
+          state.cfg.media.videos.push({ id: BD.uid(), mediaId: mediaId, caption: '' });
+        } else {
+          const songId = BD.uid();
+          state.cfg.media.songs.push({
+            id: songId,
+            mediaId: mediaId,
+            title: file.name.replace(/\.[^.]+$/, ''),
+            artist: ''
+          });
+          if (!state.cfg.media.activeSongId) state.cfg.media.activeSongId = songId;
+        }
+      }
+
+      await saveNow();
+      if (kind === 'photo') renderPhotosAdmin();
+      else if (kind === 'video') renderVideosAdmin();
+      else renderSongs();
+      updateStats();
+
+      const noun = kind === 'photo' ? 'photo' : kind === 'video' ? 'video' : 'song';
+      if (skipped) toast(accepted.length + ' ' + noun + (accepted.length === 1 ? '' : 's') + ' added. ' + skipped + ' skipped.');
+      else toast(accepted.length + ' ' + noun + (accepted.length === 1 ? '' : 's') + ' added.');
+    } catch (err) {
+      console.error(err);
+      toast('Some files could not be saved — browser storage may be full.');
+    } finally {
+      hideBusy();
+      refreshStorage();
+    }
+  }
+
+  /* ==========================================================
+     Photo admin list
+     ========================================================== */
+  function iconButton(label, text, extraClass) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'icon-btn' + (extraClass ? ' ' + extraClass : '');
+    button.title = label;
+    button.setAttribute('aria-label', label);
+    button.textContent = text;
+    return button;
+  }
+
+  function mediaPlaceholder(label) {
+    const div = document.createElement('div');
+    div.style.height = '100%';
+    div.style.display = 'grid';
+    div.style.placeItems = 'center';
+    div.style.fontSize = '.68rem';
+    div.style.fontWeight = '800';
+    div.style.letterSpacing = '.18em';
+    div.style.color = '#8d7fa1';
+    div.style.background = '#0b0712';
+    div.textContent = label;
+    return div;
+  }
+
+  async function renderPhotosAdmin() {
+    const list = $('#photoList');
+    if (!list || !state.cfg) return;
+    list.textContent = '';
+    const photos = state.cfg.media.photos;
+
+    if (!photos.length) {
+      const empty = document.createElement('div');
+      empty.className = 'empty-state';
+      empty.style.gridColumn = '1 / -1';
+      empty.textContent = 'No photos yet. Upload a few and they become flip-to-read polaroids. The first photo is used as the cover automatically.';
+      list.appendChild(empty);
+      return;
+    }
+
+    for (let index = 0; index < photos.length; index++) {
+      const entry = photos[index];
+      const card = document.createElement('div');
+      card.className = 'media-card';
+
+      const thumb = document.createElement('div');
+      thumb.className = 'media-thumb';
+      const url = await BD.mediaEntryURL(entry, '');
+      if (url) {
+        const img = document.createElement('img');
+        img.src = url;
+        img.alt = entry.caption || 'Uploaded photo';
+        img.loading = 'lazy';
+        thumb.appendChild(img);
+      } else {
+        thumb.appendChild(mediaPlaceholder('IMAGE'));
+      }
+      if (entry.cover) {
+        const badge = document.createElement('span');
+        badge.className = 'badge';
+        badge.style.position = 'absolute';
+        badge.style.top = '8px';
+        badge.style.left = '8px';
+        badge.textContent = 'Cover';
+        thumb.appendChild(badge);
+      }
+
+      const body = document.createElement('div');
+      body.className = 'media-body';
+
+      const caption = document.createElement('input');
+      caption.type = 'text';
+      caption.value = entry.caption || '';
+      caption.placeholder = 'Caption on the back';
+      caption.maxLength = 140;
+      caption.addEventListener('input', () => {
+        entry.caption = caption.value;
+        markDirty();
+      });
+
+      const meta = document.createElement('div');
+      meta.className = 'media-meta';
+      const label = document.createElement('span');
+      label.textContent = 'Photo ' + (index + 1);
+      meta.appendChild(label);
+
+      const actions = document.createElement('div');
+      actions.className = 'media-actions';
+
+      const up = iconButton('Move earlier', '↑');
+      up.disabled = index === 0;
+      up.addEventListener('click', () => moveMedia('photos', index, -1));
+      const down = iconButton('Move later', '↓');
+      down.disabled = index === photos.length - 1;
+      down.addEventListener('click', () => moveMedia('photos', index, 1));
+      const cover = document.createElement('button');
+      cover.type = 'button';
+      cover.className = 'icon-btn cover-btn';
+      cover.textContent = entry.cover ? '★' : 'Cover';
+      cover.title = entry.cover ? 'This is the cover photo' : 'Use as cover photo';
+      cover.disabled = !!entry.cover;
+      cover.addEventListener('click', () => setCover(index));
+      const remove = iconButton('Delete photo', '✕', 'danger');
+      remove.addEventListener('click', () => deleteMediaEntry('photos', index));
+
+      actions.appendChild(up);
+      actions.appendChild(down);
+      actions.appendChild(cover);
+      const spacer = document.createElement('span');
+      spacer.className = 'spacer';
+      actions.appendChild(spacer);
+      actions.appendChild(remove);
+
+      body.appendChild(caption);
+      body.appendChild(meta);
+      body.appendChild(actions);
+      card.appendChild(thumb);
+      card.appendChild(body);
+      list.appendChild(card);
+    }
+  }
+
+  async function moveMedia(kind, index, delta) {
+    const list = state.cfg.media[kind];
+    const target = index + delta;
+    if (!list || target < 0 || target >= list.length) return;
+    const tmp = list[index];
+    list[index] = list[target];
+    list[target] = tmp;
+    await saveNow();
+    if (kind === 'photos') renderPhotosAdmin();
+    else if (kind === 'videos') renderVideosAdmin();
+    else renderSongs();
+  }
+
+  async function setCover(index) {
+    state.cfg.media.photos.forEach((photo, i) => {
+      photo.cover = i === index;
+    });
+    await saveNow();
+    renderPhotosAdmin();
+    toast('Cover photo updated.');
+  }
+
+  async function deleteMediaEntry(kind, index) {
+    const list = state.cfg.media[kind];
+    const entry = list[index];
+    if (!entry) return;
+    const nouns = { photos: 'photo', videos: 'video', songs: 'song' };
+    const ok = await ask(
+      'Remove this ' + nouns[kind] + '?',
+      'It will be deleted from this browser. You can upload it again later.',
+      'Remove'
+    );
+    if (!ok) return;
+
+    list.splice(index, 1);
+    await BD.removeMedia(entry.mediaId);
+    if (kind === 'songs' && state.cfg.media.activeSongId === entry.id) {
+      state.cfg.media.activeSongId = list[0] ? list[0].id : null;
+    }
+    await saveNow();
+    if (kind === 'photos') renderPhotosAdmin();
+    else if (kind === 'videos') renderVideosAdmin();
+    else renderSongs();
+    updateStats();
+    refreshStorage();
+    toast('Removed.');
+  }
+
+  /* ==========================================================
+     Video admin list
+     ========================================================== */
+  async function renderVideosAdmin() {
+    const list = $('#videoList');
+    if (!list || !state.cfg) return;
+    list.textContent = '';
+    const videos = state.cfg.media.videos;
+
+    if (!videos.length) {
+      const empty = document.createElement('div');
+      empty.className = 'empty-state';
+      empty.style.gridColumn = '1 / -1';
+      empty.textContent = 'No videos yet. Upload a clip and it appears on the Movie Memories page with a cinematic frame.';
+      list.appendChild(empty);
+      return;
+    }
+
+    for (let index = 0; index < videos.length; index++) {
+      const entry = videos[index];
+      const card = document.createElement('div');
+      card.className = 'media-card video-card-admin';
+
+      const thumb = document.createElement('div');
+      thumb.className = 'media-thumb';
+      const url = await BD.mediaEntryURL(entry, '');
+      if (url) {
+        const video = document.createElement('video');
+        video.src = url;
+        video.preload = 'metadata';
+        video.muted = true;
+        video.playsInline = true;
+        thumb.appendChild(video);
+      } else {
+        thumb.appendChild(mediaPlaceholder('VIDEO'));
+      }
+
+      const body = document.createElement('div');
+      body.className = 'media-body';
+
+      const caption = document.createElement('input');
+      caption.type = 'text';
+      caption.value = entry.caption || '';
+      caption.placeholder = 'Caption';
+      caption.maxLength = 160;
+      caption.addEventListener('input', () => {
+        entry.caption = caption.value;
+        markDirty();
+      });
+
+      const meta = document.createElement('div');
+      meta.className = 'media-meta';
+      const label = document.createElement('span');
+      label.textContent = 'Video ' + (index + 1);
+      meta.appendChild(label);
+
+      const actions = document.createElement('div');
+      actions.className = 'media-actions';
+      const up = iconButton('Move earlier', '↑');
+      up.disabled = index === 0;
+      up.addEventListener('click', () => moveMedia('videos', index, -1));
+      const down = iconButton('Move later', '↓');
+      down.disabled = index === videos.length - 1;
+      down.addEventListener('click', () => moveMedia('videos', index, 1));
+      const remove = iconButton('Delete video', '✕', 'danger');
+      remove.addEventListener('click', () => deleteMediaEntry('videos', index));
+
+      actions.appendChild(up);
+      actions.appendChild(down);
+      const spacer = document.createElement('span');
+      spacer.className = 'spacer';
+      actions.appendChild(spacer);
+      actions.appendChild(remove);
+
+      body.appendChild(caption);
+      body.appendChild(meta);
+      body.appendChild(actions);
+      card.appendChild(thumb);
+      card.appendChild(body);
+      list.appendChild(card);
+    }
+  }
+
+  /* ==========================================================
+     Music admin list
+     ========================================================== */
+  async function renderSongs() {
+    const list = $('#songList');
+    if (!list || !state.cfg) return;
+    list.textContent = '';
+    const songs = state.cfg.media.songs;
+
+    if (!songs.length) {
+      const empty = document.createElement('div');
+      empty.className = 'empty-state';
+      empty.textContent = 'No songs yet — the site will play its built-in birthday melody instead. Upload a song to use your own music.';
+      list.appendChild(empty);
+      return;
+    }
+
+    for (let index = 0; index < songs.length; index++) {
+      const song = songs[index];
+      const active = state.cfg.media.activeSongId === song.id;
+      const row = document.createElement('div');
+      row.className = 'song-row' + (active ? ' active' : '');
+
+      const icon = document.createElement('div');
+      icon.className = 'song-icon';
+      icon.textContent = '♪';
+
+      const main = document.createElement('div');
+      main.className = 'song-main';
+
+      const inputs = document.createElement('div');
+      inputs.className = 'song-inputs';
+      const title = document.createElement('input');
+      title.type = 'text';
+      title.value = song.title || '';
+      title.placeholder = 'Song title';
+      title.addEventListener('input', () => {
+        song.title = title.value;
+        markDirty();
+      });
+      const artist = document.createElement('input');
+      artist.type = 'text';
+      artist.value = song.artist || '';
+      artist.placeholder = 'Artist (optional)';
+      artist.addEventListener('input', () => {
+        song.artist = artist.value;
+        markDirty();
+      });
+      inputs.appendChild(title);
+      inputs.appendChild(artist);
+
+      const audio = document.createElement('audio');
+      audio.className = 'song-audio';
+      audio.controls = true;
+      audio.preload = 'none';
+      const url = await BD.mediaEntryURL(song, '');
+      if (url) audio.src = url;
+
+      main.appendChild(inputs);
+      main.appendChild(audio);
+
+      const actions = document.createElement('div');
+      actions.className = 'song-actions';
+
+      const useButton = document.createElement('button');
+      useButton.type = 'button';
+      useButton.className = 'btn small ' + (active ? 'primary' : 'ghost');
+      useButton.textContent = active ? 'Active ✓' : 'Use this song';
+      useButton.disabled = active;
+      useButton.addEventListener('click', async () => {
+        state.cfg.media.activeSongId = song.id;
+        await saveNow();
+        renderSongs();
+        toast('Active song updated.');
+      });
+
+      const up = iconButton('Move earlier', '↑');
+      up.disabled = index === 0;
+      up.addEventListener('click', () => moveMedia('songs', index, -1));
+      const down = iconButton('Move later', '↓');
+      down.disabled = index === songs.length - 1;
+      down.addEventListener('click', () => moveMedia('songs', index, 1));
+      const remove = iconButton('Delete song', '✕', 'danger');
+      remove.addEventListener('click', () => deleteMediaEntry('songs', index));
+
+      actions.appendChild(useButton);
+      actions.appendChild(up);
+      actions.appendChild(down);
+      actions.appendChild(remove);
+
+      row.appendChild(icon);
+      row.appendChild(main);
+      row.appendChild(actions);
+      list.appendChild(row);
+    }
+  }
+
+  /* ==========================================================
+     Scene list + secrets
+     ========================================================== */
+  function renderSceneList() {
+    const list = $('#sceneList');
+    if (!list || !state.cfg) return;
+    list.textContent = '';
+
+    const order = state.cfg.scenes.order;
+    BD.SCENES.forEach((scene) => {
+      if (order.indexOf(scene.id) === -1) order.push(scene.id);
+    });
+
+    order.forEach((id, index) => {
+      const meta = BD.SCENES.find((scene) => scene.id === id) || { label: id, blurb: '' };
+      const enabled = state.cfg.scenes.enabled[id] !== false;
+      const row = document.createElement('div');
+      row.className = 'scene-row' + (enabled ? '' : ' off');
+
+      const checkWrap = document.createElement('label');
+      checkWrap.className = 'scene-check';
+      const check = document.createElement('input');
+      check.type = 'checkbox';
+      check.checked = enabled;
+      check.setAttribute('aria-label', 'Show the ' + meta.label + ' page');
+      check.addEventListener('change', () => {
+        state.cfg.scenes.enabled[id] = check.checked;
+        row.classList.toggle('off', !check.checked);
+        markDirty();
+        updateStats();
+      });
+      checkWrap.appendChild(check);
+
+      const icon = document.createElement('span');
+      icon.className = 'scene-icon';
+      icon.setAttribute('aria-hidden', 'true');
+      icon.textContent = String(index + 1).padStart(2, '0');
+
+      const info = document.createElement('div');
+      info.className = 'scene-info';
+      const strong = document.createElement('strong');
+      strong.textContent = meta.label;
+      const small = document.createElement('small');
+      small.textContent = meta.blurb + (enabled ? '' : ' · hidden');
+      info.appendChild(strong);
+      info.appendChild(small);
+
+      const controls = document.createElement('div');
+      controls.className = 'scene-controls';
+      const up = iconButton('Move page earlier', '↑');
+      up.disabled = index === 0;
+      up.addEventListener('click', () => moveScene(id, -1));
+      const down = iconButton('Move page later', '↓');
+      down.disabled = index === order.length - 1;
+      down.addEventListener('click', () => moveScene(id, 1));
+      controls.appendChild(up);
+      controls.appendChild(down);
+
+      row.appendChild(checkWrap);
+      row.appendChild(icon);
+      row.appendChild(info);
+      row.appendChild(controls);
+      list.appendChild(row);
+    });
+  }
+
+  async function moveScene(id, delta) {
+    const order = state.cfg.scenes.order;
+    const index = order.indexOf(id);
+    const target = index + delta;
+    if (index < 0 || target < 0 || target >= order.length) return;
+    const tmp = order[index];
+    order[index] = order[target];
+    order[target] = tmp;
+    await saveNow();
+    renderSceneList();
+  }
+
+  function renderFortunes() {
+    const box = $('#fortunesBox');
+    if (!box || !state.cfg) return;
+    if (document.activeElement !== box) {
+      box.value = (state.cfg.scenes.fortunes || []).join('\n');
+    }
+  }
+
+  function updateBalloonCount() {
+    const box = $('#balloonMessageBox');
+    const counter = $('#balloonCount');
+    if (counter) {
+      const value = box ? box.value : (state.cfg && state.cfg.scenes.balloonsMessage) || '';
+      counter.textContent = value.length + ' / 52';
+    }
+  }
+  /* ==========================================================
+     Theme
+     ========================================================== */
+  function bindTheme() {
+    ['themeAccent', 'themeAccent2', 'themeBg1', 'themeBg2', 'themeText'].forEach((id) => {
+      const input = $('#' + id);
+      if (!input) return;
+      input.addEventListener('input', () => {
+        state.cfg.theme.preset = 'custom';
+        renderPresets();
+        updateThemePreview();
+      });
+    });
+  }
+
+  function renderPresets() {
+    const grid = $('#themePresets');
+    if (!grid || !state.cfg) return;
+    grid.textContent = '';
+    Object.keys(BD.THEME_PRESETS).forEach((key) => {
+      const preset = BD.THEME_PRESETS[key];
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'preset' + (state.cfg.theme.preset === key ? ' active' : '');
+      button.setAttribute('aria-pressed', state.cfg.theme.preset === key ? 'true' : 'false');
+
+      const swatches = document.createElement('span');
+      swatches.className = 'swatches';
+      [preset.accent, preset.accent2, preset.bg1, preset.bg2].forEach((color) => {
+        const swatch = document.createElement('span');
+        swatch.className = 'swatch';
+        swatch.style.background = color;
+        swatches.appendChild(swatch);
+      });
+      const label = document.createElement('span');
+      label.textContent = preset.label;
+
+      button.appendChild(swatches);
+      button.appendChild(label);
+      button.addEventListener('click', () => applyPreset(key));
+      grid.appendChild(button);
+    });
+  }
+
+  function applyPreset(key) {
+    const preset = BD.THEME_PRESETS[key];
+    if (!preset) return;
+    state.cfg.theme.preset = key;
+    state.cfg.theme.accent = preset.accent;
+    state.cfg.theme.accent2 = preset.accent2;
+    state.cfg.theme.bg1 = preset.bg1;
+    state.cfg.theme.bg2 = preset.bg2;
+    state.cfg.theme.text = preset.text;
+    syncFields();
+    markDirty();
+    renderPresets();
+    updateThemePreview();
+    toast(preset.label + ' theme applied.');
+  }
+
+  function updateThemePreview() {
+    const preview = $('#themePreview');
+    if (!preview || !state.cfg) return;
+    const theme = state.cfg.theme;
+    preview.style.setProperty('--p-accent', theme.accent);
+    preview.style.setProperty('--p-accent2', theme.accent2);
+    preview.style.setProperty('--p-bg1', theme.bg1);
+    preview.style.setProperty('--p-bg2', theme.bg2);
+    preview.style.setProperty('--p-text', theme.text);
+    preview.style.setProperty('--p-font', BD.FONTS[theme.font] || BD.FONTS.rounded);
+    $('#themePreviewTitle').textContent =
+      'Happy Birthday, ' + (state.cfg.general.name || 'Alex') + '!';
+  }
+
+  /* ==========================================================
+     Settings: persistence, backup, publish, reset
+     ========================================================== */
+  function bindSettings() {
+    $('#persistBtn').addEventListener('click', handlePersist);
+    $('#persistBtn2').addEventListener('click', handlePersist);
+    $('#exportBtn').addEventListener('click', exportBackup);
+    $('#importBtn').addEventListener('click', () => $('#importInput').click());
+    $('#importInput').addEventListener('change', async () => {
+      const input = $('#importInput');
+      const file = input.files && input.files[0];
+      input.value = '';
+      if (file) await importBackup(file);
+    });
+    $('#publishBtn').addEventListener('click', publishFolder);
+    $('#resetBtn').addEventListener('click', resetEverything);
+    $('#gateSaveBtn').addEventListener('click', saveVisitorGate);
+    $('#gateClearBtn').addEventListener('click', clearVisitorGate);
+    $('#gateDefaultBtn').addEventListener('click', useDefaultVisitorGate);
+  }
+
+  async function saveVisitorGate() {
+    const input = $('#gatePassword');
+    const confirm = $('#gateConfirm');
+    const password = input.value;
+    if (password.length < 4) {
+      toast('The visitor password needs at least 4 characters.');
+      input.focus();
+      return;
+    }
+    if (password !== confirm.value) {
+      toast('The visitor passwords do not match.');
+      confirm.focus();
+      return;
+    }
+    state.cfg.settings.visitorGate = await BD.makeVisitorGate(password);
+    markDirty();
+    input.value = '';
+    confirm.value = '';
+    updateVisitorGateUI();
+    toast('Visitor password set — publish to make it live.');
+  }
+
+  function clearVisitorGate() {
+    if (!BD.getVisitorGate(state.cfg)) return;
+    state.cfg.settings.visitorGate = false;
+    markDirty();
+    updateVisitorGateUI();
+    toast('Visitor password turned off — publish to make it live.');
+  }
+
+  function useDefaultVisitorGate() {
+    if (BD.isDefaultVisitorGate(state.cfg)) return;
+    state.cfg.settings.visitorGate = null;
+    markDirty();
+    updateVisitorGateUI();
+    toast('Built-in visitor password restored — publish to make it live.');
+  }
+
+  function updateVisitorGateUI() {
+    const status = $('#gateStatus');
+    if (!status) return;
+    const gate = BD.getVisitorGate(state.cfg);
+    const usingDefault = BD.isDefaultVisitorGate(state.cfg);
+    const defaultEl = $('#defaultGatePassword');
+    if (defaultEl) defaultEl.textContent = BD.DEFAULT_VISITOR_PASSWORD || 'welcome2026';
+    if (!gate) {
+      status.textContent = 'Visitor password is off. Anyone with the link can open the site.';
+    } else if (usingDefault) {
+      status.textContent = 'Built-in default visitor password is active: ' +
+        (BD.DEFAULT_VISITOR_PASSWORD || 'welcome2026') +
+        '. Visitors must enter it before the site opens.';
+    } else {
+      status.textContent = 'Custom visitor password is set. Visitors must enter it before the site opens.';
+    }
+    const clear = $('#gateClearBtn');
+    if (clear) clear.disabled = !gate;
+    const defaultButton = $('#gateDefaultBtn');
+    if (defaultButton) defaultButton.disabled = usingDefault;
+  }
+
+  /* ==========================================================
+     Supabase cloud publishing
+     ========================================================== */
+  function bindCloud() {
+    $('#cloudForm').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const email = $('#cloudEmail').value.trim();
+      const password = $('#cloudPassword').value;
+      if (!email || !password) return;
+      showBusy('Signing in to Supabase…');
+      try {
+        await BD.supabaseSignIn(email, password);
+        $('#cloudPassword').value = '';
+        updateCloudUI();
+        toast('Signed in to Supabase.');
+      } catch (err) {
+        toast('Supabase sign-in failed: ' + err.message);
+      } finally {
+        hideBusy();
+      }
+    });
+
+    $('#cloudSignOutBtn').addEventListener('click', async () => {
+      await BD.supabaseSignOut();
+      updateCloudUI();
+      toast('Signed out of Supabase.');
+    });
+
+    $('#cloudPublishBtn').addEventListener('click', publishToSupabase);
+    $('#cloudPullBtn').addEventListener('click', pullFromSupabase);
+  }
+
+  function updateCloudUI() {
+    const status = $('#cloudStatus');
+    if (!status) return;
+    const ready = BD.isSupabaseConfigured();
+    const session = BD.supabaseSession();
+    const signedIn = !!(session && session.access_token);
+
+    status.textContent = !ready
+      ? 'Not configured. Add your Supabase project URL and anon key to supabase-config.js, then reload this page.'
+      : signedIn
+        ? 'Signed in as ' + (session.email || 'admin') + '. Publishing replaces the live site data.'
+        : 'Configured. Sign in with the Supabase admin account to publish.';
+
+    $('#cloudForm').hidden = !ready || signedIn;
+    $('#cloudSignOutBtn').hidden = !signedIn;
+    $('#cloudPublishBtn').disabled = !ready || !signedIn;
+    $('#cloudPullBtn').disabled = !ready;
+
+    const notice = $('#cloudWarning');
+    if (notice) {
+      const hosted = location.protocol !== 'file:';
+      const show = hosted && (!ready || !signedIn);
+      notice.hidden = !show;
+      if (show) {
+        $('#cloudWarningTitle').textContent = ready
+          ? 'Not signed in to Supabase.'
+          : 'Cloud publishing is off.';
+        $('#cloudWarningText').textContent = ready
+          ? ' Sign in under Settings → Supabase cloud so Publish updates the live site.'
+          : ' Visitors see the default site until you add the anon public key to supabase-config.js, run npm run build, and redeploy.';
+      }
+    }
+  }
+
+  async function publishToSupabase() {
+    if (!state.cfg) return;
+    const ok = await ask(
+      'Publish to Supabase?',
+      'This uploads every local photo, video and song, then replaces the live site configuration. Visitors see the new version the next time the page loads.',
+      'Publish now'
+    );
+    if (!ok) return;
+
+    showBusy('Publishing to Supabase…');
+    try {
+      const result = await BD.supabasePublish(state.cfg, (message) => {
+        $('#busyText').textContent = message;
+      });
+      updateCloudUI();
+      toast('Published — ' + result.uploaded + ' file(s) uploaded, ' + result.skipped + ' skipped.');
+    } catch (err) {
+      toast('Publish failed: ' + err.message);
+      updateCloudUI();
+    } finally {
+      hideBusy();
+    }
+  }
+
+  async function pullFromSupabase() {
+    const ok = await ask(
+      'Pull from Supabase?',
+      'This replaces the local text, theme, scenes and media list with the published version. Local media files stay in this browser but are no longer referenced.',
+      'Pull the live site'
+    );
+    if (!ok) return;
+
+    showBusy('Loading the published site…');
+    try {
+      const remote = await BD.supabasePullConfig();
+      state.cfg = remote.config;
+      normalizeConfig();
+      state.version++;
+      state.dirty = false;
+      await BD.saveConfig(state.cfg);
+      syncFields();
+      renderAll();
+      populatePasswordForm();
+      updateCloudUI();
+      setSaveState(remote.updatedAt ? 'Pulled ' + new Date(remote.updatedAt).toLocaleString() : 'Pulled from Supabase');
+      toast('The published site is now in this editor.');
+    } catch (err) {
+      toast('Pull failed: ' + err.message);
+    } finally {
+      hideBusy();
+    }
+  }
+
+  async function exportBackup() {
+    if (!state.cfg) return;
+    const ids = [];
+    const seen = {};
+    ['photos', 'videos', 'songs'].forEach((kind) => {
+      (state.cfg.media[kind] || []).forEach((entry) => {
+        if (entry.mediaId && !seen[entry.mediaId]) {
+          seen[entry.mediaId] = true;
+          ids.push(entry.mediaId);
+        }
+      });
+    });
+
+    const records = [];
+    let total = 0;
+    for (const id of ids) {
+      const record = await BD.getMedia(id);
+      if (record && record.blob) {
+        records.push(record);
+        total += record.size || record.blob.size || 0;
+      }
+    }
+
+    if (total > 320 * 1024 * 1024) {
+      toast('This backup would be too large for one file. Use Publish folder for the media instead.');
+      return;
+    }
+    if (total > 120 * 1024 * 1024) {
+      const ok = await ask(
+        'Large backup',
+        'This backup is about ' + BD.formatBytes(total) + '. Building it can take a while and use plenty of memory. Continue?',
+        'Continue'
+      );
+      if (!ok) return;
+    }
+
+    showBusy('Packing your backup…');
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 80));
+      const media = [];
+      for (let i = 0; i < records.length; i++) {
+        $('#busyText').textContent = 'Packing file ' + (i + 1) + ' of ' + records.length + '…';
+        const record = records[i];
+        try {
+          const data = await BD.blobToBase64(record.blob);
+          media.push({
+            id: record.id,
+            kind: record.kind,
+            name: record.name,
+            type: record.type,
+            size: record.size,
+            createdAt: record.createdAt,
+            data: data
+          });
+        } catch (err) {
+          console.warn('Skipped a file while exporting', record.name, err);
+        }
+      }
+
+      const payload = {
+        app: 'birthday-site',
+        version: 1,
+        exportedAt: new Date().toISOString(),
+        config: state.cfg,
+        media: media
+      };
+      const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
+      BD.downloadBlob('birthday-backup-' + dateStamp() + '.birthday.json', blob);
+      toast('Backup downloaded — keep it somewhere safe.');
+    } catch (err) {
+      console.error(err);
+      toast('The backup could not be created.');
+    } finally {
+      hideBusy();
+    }
+  }
+
+  async function importBackup(file) {
+    let data;
+    try {
+      const text = await file.text();
+      data = JSON.parse(text);
+    } catch (err) {
+      toast('That file could not be read as a backup.');
+      return;
+    }
+    if (!data || data.app !== 'birthday-site' || !data.config) {
+      toast('That is not a Birthday Studio backup file.');
+      return;
+    }
+
+    const ok = await ask(
+      'Replace everything?',
+      'Importing this backup replaces all current text, settings, photos, videos and songs in this browser. This cannot be undone.',
+      'Replace my site'
+    );
+    if (!ok) return;
+
+    showBusy('Restoring your site…');
+    try {
+      await BD.clearAll();
+      const media = Array.isArray(data.media) ? data.media : [];
+      for (let i = 0; i < media.length; i++) {
+        const item = media[i];
+        if (!item || !item.data) continue;
+        $('#busyText').textContent = 'Restoring file ' + (i + 1) + ' of ' + media.length + '…';
+        const blob = BD.base64ToBlob(item.data, item.type);
+        await BD.putMedia({
+          id: item.id || BD.uid(),
+          kind: item.kind || 'photo',
+          name: item.name || 'file',
+          type: item.type || blob.type,
+          size: item.size || blob.size,
+          createdAt: item.createdAt || Date.now(),
+          blob: blob
+        });
+      }
+
+      await BD.saveConfig(data.config);
+      state.cfg = await BD.getConfig();
+      normalizeConfig();
+      state.version++;
+      state.dirty = false;
+      syncFields();
+      renderAll();
+      populatePasswordForm();
+      setSaveState('Backup restored');
+      await refreshStorage();
+      toast('Backup restored successfully.');
+    } catch (err) {
+      console.error(err);
+      toast('The import failed partway through. Try again or restore an earlier backup.');
+    } finally {
+      hideBusy();
+    }
+  }
+
+  async function publishFolder() {
+    if (typeof window.showDirectoryPicker !== 'function') {
+      toast('Folder export needs Chrome or Edge. Use Download backup instead.');
+      return;
+    }
+    let root;
+    try {
+      root = await window.showDirectoryPicker({ mode: 'readwrite' });
+    } catch (err) {
+      if (!err || err.name !== 'AbortError') toast('Could not open that folder.');
+      return;
+    }
+    if (!state.cfg) return;
+
+    showBusy('Publishing your site…');
+    try {
+      const out = BD.clone(state.cfg);
+      const dataDir = await root.getDirectoryHandle('data', { create: true });
+      const mediaDir = await dataDir.getDirectoryHandle('media', { create: true });
+      let count = 0;
+
+      async function copyEntry(entry, kind) {
+        if (!entry || !entry.mediaId) return false;
+        const record = await BD.getMedia(entry.mediaId);
+        if (!record || !record.blob) return false;
+        const extension = BD.fileExtension(record.type, record.name);
+        const base = kind + '-' + String(entry.id || BD.uid()).replace(/[^a-zA-Z0-9]/g, '').slice(0, 24);
+        const filename = base + '.' + extension;
+        $('#busyText').textContent = 'Copying ' + filename + '…';
+        const handle = await mediaDir.getFileHandle(filename, { create: true });
+        const writable = await handle.createWritable();
+        await writable.write(record.blob);
+        await writable.close();
+        entry.file = filename;
+        count++;
+        return true;
+      }
+
+      for (const photo of out.media.photos) await copyEntry(photo, 'photo');
+      for (const video of out.media.videos) await copyEntry(video, 'video');
+      for (const song of out.media.songs) await copyEntry(song, 'song');
+
+      $('#busyText').textContent = 'Writing site data…';
+      const siteHandle = await dataDir.getFileHandle('site.json', { create: true });
+      const siteWriter = await siteHandle.createWritable();
+      await siteWriter.write(JSON.stringify(out, null, 2));
+      await siteWriter.close();
+
+      const readmeHandle = await root.getFileHandle('README-PUBLISH.txt', { create: true });
+      const readmeWriter = await readmeHandle.createWritable();
+      await readmeWriter.write(
+        [
+          'BIRTHDAY SITE — PUBLISHED FOLDER',
+          '',
+          'This folder contains data/site.json and data/media/ with ' + count + ' media file(s).',
+          '',
+          'To finish:',
+          '1. Copy index.html and common.js into this folder, next to the data folder.',
+          '2. Upload the whole folder to any static host (GitHub Pages, Netlify, Cloudflare Pages, etc.).',
+          '3. Share the link.',
+          '',
+          'Visitors will see the password page first. The built-in default visitor password is',
+          BD.DEFAULT_VISITOR_PASSWORD + '; change it under Settings → Visitor password before sharing.',
+          '',
+          'The published site is read-only for visitors. Keep using admin.html',
+          'from your original local folder to edit text, media, and settings.'
+        ].join('\n')
+      );
+      await readmeWriter.close();
+
+      let copied = 0;
+      for (const filename of ['index.html', 'common.js']) {
+        try {
+          const response = await fetch(filename);
+          if (!response.ok) continue;
+          const source = await response.text();
+          const handle = await root.getFileHandle(filename, { create: true });
+          const writer = await handle.createWritable();
+          await writer.write(source);
+          await writer.close();
+          copied++;
+        } catch (err) {
+          /* file:// fetch is blocked — the user can copy the files manually */
+        }
+      }
+
+      hideBusy();
+      if (copied === 2) {
+        toast('Published folder is ready — host it anywhere!');
+      } else {
+        await notify(
+          'Folder exported',
+          'Media and site data were written to the folder. Now copy index.html and common.js into that same folder (pages opened from file:// cannot copy themselves). Then upload the whole folder to any static host.'
+        );
+      }
+    } catch (err) {
+      console.error(err);
+      hideBusy();
+      toast('Could not write to that folder. Check permissions and try again.');
+    }
+  }
+
+  async function resetEverything() {
+    const first = await ask(
+      'Delete everything?',
+      'This removes all text, settings, photos, videos, songs, and the admin password from this browser. There is no undo.',
+      'Delete everything'
+    );
+    if (!first) return;
+    const second = await ask(
+      'Really start over?',
+      'Last chance. If there is anything you might want later, cancel and download a backup first.',
+      'Yes, start over'
+    );
+    if (!second) return;
+
+    showBusy('Starting fresh…');
+    try {
+      await BD.clearAll();
+      BD.clearPassword();
+      BD.setHint('');
+      BD.setAuthed(false);
+      try { localStorage.removeItem('bd_config_fallback_v1'); } catch (err) { /* ignore */ }
+      location.reload();
+    } catch (err) {
+      hideBusy();
+      toast('Could not clear everything. Clear this site’s data from the browser settings instead.');
+    }
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>

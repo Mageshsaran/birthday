@@ -1,0 +1,4 @@
+User-agent: *
+Disallow: /admin.html
+
+# The public birthday site is intentionally shareable.
